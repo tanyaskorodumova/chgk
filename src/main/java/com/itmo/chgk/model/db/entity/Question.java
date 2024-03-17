@@ -1,5 +1,6 @@
 package com.itmo.chgk.model.db.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -27,8 +28,8 @@ public class Question {
     String answer;
     String source;
 
-    @Column(name = "author_id")
-    Long authorId;
+    @ManyToOne
+    User user;
 
     QuestionStatus status;
 

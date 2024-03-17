@@ -5,7 +5,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.itmo.chgk.model.enums.CommonStatus;
+import com.itmo.chgk.model.enums.TournamentLevel;
+import com.itmo.chgk.model.enums.TournamentStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,36 +14,34 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Calendar;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "users")
+@Table(name = "tournaments")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User {
+public class Tournament {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String email;
-    String login;
-    String password;
+    @Column(name = "tourn_name")
+    String tournName;
 
-    @Column(name = "first_name")
-    String firstName;
+    TournamentLevel level;
 
-    @Column(name = "last_name")
-    String lastName;
+    @Column(name = "tourn_factor")
+    Integer tournFactor;
 
-    @Column(name = "birth_date")
-    Calendar birthDate;
+    @Column(name = "min_points")
+    Integer minPoints;
 
-    @ManyToOne
-    @JsonManagedReference(value = "team_lineup")
-    Team team;
+    @OneToMany
+    @JsonManagedReference(value = "tournament_games")
+    List<Game> games;
 
-    CommonStatus status;
+    TournamentStatus status;
 
     @Column(name = "created_at")
     @JsonSerialize(using = LocalDateTimeSerializer.class)

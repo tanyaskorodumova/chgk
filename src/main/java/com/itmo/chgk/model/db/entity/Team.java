@@ -13,34 +13,31 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Calendar;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "users")
+@Table(name = "teams")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User {
+public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String email;
-    String login;
-    String password;
+    @Column(name = "team_name")
+    String teamName;
 
-    @Column(name = "first_name")
-    String firstName;
+    @OneToOne
+    User captain;
 
-    @Column(name = "last_name")
-    String lastName;
+    @OneToOne
+    //@Column(name = "vice_captain")
+    User viceCaptain;
 
-    @Column(name = "birth_date")
-    Calendar birthDate;
-
-    @ManyToOne
+    @OneToMany
     @JsonManagedReference(value = "team_lineup")
-    Team team;
+    List<User> users;
 
     CommonStatus status;
 
@@ -53,4 +50,6 @@ public class User {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     LocalDateTime updatedAt;
+
+
 }

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/itmo
+    url: jdbc:postgresql://localhost:5432/chgk_db
     username: chgk_admin
     password: chgk2024
     driver-class-name: org.postgresql.Driver
