@@ -14,7 +14,6 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -41,10 +40,6 @@ public class Game {
     Tournament tournament;
 
     Stage stage;
-
-    @OneToMany
-    @JsonManagedReference(value = "game_teams")
-    List<Team> participants;
 
     GameStatus status;
 

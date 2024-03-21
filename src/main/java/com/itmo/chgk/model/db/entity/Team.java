@@ -32,12 +32,19 @@ public class Team {
     User captain;
 
     @OneToOne
-    //@Column(name = "vice_captain")
     User viceCaptain;
 
     @OneToMany
     @JsonManagedReference(value = "team_lineup")
     List<User> users;
+
+    Integer points;
+
+    @Column(name = "correct_answers")
+    Integer correctAnswers;
+
+    @Column(name = "correct_answers_pct")
+    Double correctAnswersPct;
 
     CommonStatus status;
 
