@@ -22,4 +22,6 @@ public class GameQuestion {
 
     @OneToOne
     Question question;
+
+    Integer round;
 }
