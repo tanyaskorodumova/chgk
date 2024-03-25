@@ -39,7 +39,7 @@ public class User {
     Calendar birthDate;
 
     @ManyToOne
-    @JsonManagedReference(value = "team_lineup")
+    @JsonManagedReference(value = "team_users")
     Team team;
 
     CommonStatus status;

@@ -4,6 +4,7 @@ import com.itmo.chgk.model.dto.request.QuestionInfoRequest;
 import com.itmo.chgk.model.dto.request.QuestionPackRequest;
 import com.itmo.chgk.model.dto.response.QuestionInfoResponse;
 import com.itmo.chgk.model.enums.QuestionStatus;
+import com.itmo.chgk.service.QuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -16,52 +17,60 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QuestionController {
 
+    private final QuestionService questionService;
+
     @GetMapping("/all")
     public Page<QuestionInfoResponse> getAllQuestions(@RequestParam(defaultValue = "1") Integer page,
                                                       @RequestParam(defaultValue = "10") Integer perPage,
                                                       @RequestParam(defaultValue = "id") String sort,
                                                       @RequestParam(defaultValue = "ASC") Sort.Direction order)
     {
-        //return questionService.getAllCars(page, perPage, sort, order);
-        return null;
+        return questionService.getAllQuestions(page, perPage, sort, order);
     }
 
     @GetMapping("/{id}")
     public QuestionInfoResponse getQuestion(@PathVariable Long id) {
-        //return carService.getCar(id);
-        return null;
+        return questionService.getQuestion(id);
     }
 
     @GetMapping("/training/package")
     public List<QuestionInfoResponse> getQuestionPack(@RequestBody QuestionPackRequest request) {
-        return null;
+        return questionService.getQuestionPack(request);
     }
 
     @GetMapping("/{id}/answer")
     public QuestionInfoResponse getAnswer(@PathVariable Long id) {
-        return null;
+        return questionService.getAnswer(id);
     }
 
     @PostMapping("/new")
     public QuestionInfoResponse createQuestion(@RequestBody QuestionInfoRequest request) {
-        return null;
+        return questionService.createQuestion(request);
     }
 
     @PutMapping("/{id}")
     public QuestionInfoResponse updateQuestion(@PathVariable Long id, @RequestBody QuestionInfoRequest request) {
-        return null;
+        return questionService.updateQuestion(id, request);
+    }
+
+    @GetMapping("/approve/get")
+    public Page<QuestionInfoResponse> getQuestionsToApprove(@RequestParam(defaultValue = "1") Integer page,
+                                                            @RequestParam(defaultValue = "10") Integer perPage,
+                                                            @RequestParam(defaultValue = "dateTime") String sort,
+                                                            @RequestParam(defaultValue = "ASC") Sort.Direction order) {
+        return questionService.getQuestionsToApprove(page, perPage, sort, order);
     }
 
     @PutMapping("/approve/{id}")
     public QuestionInfoResponse approveQuestion(@PathVariable Long id,
                                                 @RequestBody QuestionInfoRequest request,
                                                 @RequestBody QuestionStatus status) {
-        return null;
+        return questionService.approveQuestion(id, request, status);
     }
 
     @DeleteMapping("/{id}")
     public void deleteQuestion(@PathVariable Long id) {
-
+        questionService.deleteQuestion(id);
     }
 
 }
