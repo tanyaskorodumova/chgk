@@ -45,28 +45,26 @@ public class QuestionServiceImpl implements QuestionService {
                 })
                 .collect(Collectors.toList());
 
-        Page<QuestionInfoResponse> pageResponse = new PageImpl<>(all);
-
-        return pageResponse;
+        return new PageImpl<>(all);
     }
 
     public Question getQuestionDb(Long id) {
-        return questionRepo.findById(id).orElseThrow(() -> new CustomException("Question not found", HttpStatus.NOT_FOUND));
+        return questionRepo.findById(id).orElseThrow(() -> new CustomException("Вопрос не найден", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public QuestionInfoResponse getQuestion(Long id) {
         Question question = getQuestionDb(id);
         QuestionInfoResponse questionInfoResponse = mapper.convertValue(question, QuestionInfoResponse.class);
-        questionInfoResponse.setAnswer("");
-        questionInfoResponse.setSource("");
+        questionInfoResponse.setAnswer("Скрыто");
+        questionInfoResponse.setSource("Скрыто");
         return questionInfoResponse;
     }
 
     @Override
     public List<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request) {
-        List<Question> questions = questionRepo.findByComplexityBetween(request.getMinComplexity().ordinal(),
-                request.getMaxComplexity().ordinal(),
+        List<Question> questions = questionRepo.findByQuestionPackRequest(request.getMinComplexity(),
+                request.getMaxComplexity(),
                 request.getNumber());
         List<QuestionInfoResponse> questionInfoResponses = questions.stream()
                 .map(question -> {
@@ -87,7 +85,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionInfoResponse createQuestion(QuestionInfoRequest request) {
-        if (request.getAnswer().isEmpty()) {
+        if (request.getQuestion().isEmpty()) {
             throw new CustomException("Поле вопрос не может быть пустым", HttpStatus.BAD_REQUEST);
         }
         if (request.getAnswer().isEmpty()) {

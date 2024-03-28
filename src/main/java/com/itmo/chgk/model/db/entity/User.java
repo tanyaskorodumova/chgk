@@ -1,5 +1,6 @@
 package com.itmo.chgk.model.db.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -12,6 +13,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 
@@ -36,10 +38,10 @@ public class User {
     String lastName;
 
     @Column(name = "birth_date")
-    Calendar birthDate;
+    LocalDate birthDate;
 
     @ManyToOne
-    @JsonManagedReference(value = "team_users")
+    @JsonBackReference(value = "team_users")
     Team team;
 
     CommonStatus status;
@@ -53,4 +55,5 @@ public class User {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     LocalDateTime updatedAt;
+
 }

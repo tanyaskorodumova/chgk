@@ -56,7 +56,7 @@ public class QuestionController {
     @GetMapping("/approve/get")
     public Page<QuestionInfoResponse> getQuestionsToApprove(@RequestParam(defaultValue = "1") Integer page,
                                                             @RequestParam(defaultValue = "10") Integer perPage,
-                                                            @RequestParam(defaultValue = "dateTime") String sort,
+                                                            @RequestParam(defaultValue = "id") String sort,
                                                             @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return questionService.getQuestionsToApprove(page, perPage, sort, order);
     }

@@ -14,7 +14,7 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
+
 
 @Getter
 @Setter
@@ -29,10 +29,10 @@ public class Game {
     @Column(name = "game_name")
     String gameName;
 
-    @Column(name = "date_time")
+    @Column(name = "game_date_time")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    LocalDateTime dateTime;
+    LocalDateTime gameDateTime;
 
     String place;
 

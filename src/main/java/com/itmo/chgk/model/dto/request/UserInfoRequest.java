@@ -3,8 +3,11 @@ package com.itmo.chgk.model.dto.request;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.mapping.List;
 
 import javax.validation.constraints.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 
 @Getter
@@ -34,5 +37,5 @@ public class UserInfoRequest {
     String lastName;
 
     @Past()
-    Calendar birthDate;
+    LocalDate birthDate;
 }
