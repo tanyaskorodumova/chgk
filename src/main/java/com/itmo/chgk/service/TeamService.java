@@ -23,5 +23,4 @@ public interface TeamService {
 
     Page<UserInfoResponse> getMembers(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<TeamInfoResponse> getRating(Integer page, Integer perPage, String sort, Sort.Direction order);
 }

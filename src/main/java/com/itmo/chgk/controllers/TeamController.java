@@ -71,13 +71,4 @@ public class TeamController {
         return teamService.getMembers(id, page, perPage, sort, order);
     }
 
-    @GetMapping("/rating")
-    public Page<TeamInfoResponse> getRating(@RequestParam(defaultValue = "1") Integer page,
-                                              @RequestParam(defaultValue = "10") Integer perPage,
-                                              @RequestParam(defaultValue = "points") String sort,
-                                              @RequestParam(defaultValue = "ASC") Sort.Direction order)
-    {
-        return teamService.getRating(page, perPage, sort, order);
-    }
-
 }

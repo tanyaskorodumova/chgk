@@ -43,6 +43,7 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(all);
     }
 
+    @Override
     public User getUserDb(Long id) {
         return userRepo.findById(id).orElseThrow(() -> new CustomException("Пользователь не найден", HttpStatus.NOT_FOUND));
     }

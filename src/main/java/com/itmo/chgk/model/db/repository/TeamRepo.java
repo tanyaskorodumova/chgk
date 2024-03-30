@@ -6,6 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface TeamRepo extends JpaRepository<Team, Long> {
     Page<Team> findAllByStatusIsNot(Pageable pageable, CommonStatus status);
+
 }
