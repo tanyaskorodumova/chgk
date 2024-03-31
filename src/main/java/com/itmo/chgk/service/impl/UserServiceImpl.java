@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +39,12 @@ public class UserServiceImpl implements UserService {
         List<UserInfoResponse> all = userRepo.findAllByStatusIsNot(request, CommonStatus.DELETED)
                 .getContent()
                 .stream()
-                .map(user -> mapper.convertValue(user, UserInfoResponse.class))
+                .map(user -> {
+                    UserInfoResponse response = mapper.convertValue(user, UserInfoResponse.class);
+                    response.setBirthDay(user.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                    response.setPassword("Скрыто");
+                    return response;
+                })
                 .collect(Collectors.toList());
 
         return new PageImpl<>(all);
@@ -53,6 +60,7 @@ public class UserServiceImpl implements UserService {
         User user = getUserDb(id);
         UserInfoResponse userInfoResponse = mapper.convertValue(user, UserInfoResponse.class);
         userInfoResponse.setPassword("Скрыто");
+        userInfoResponse.setBirthDay(user.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
         return userInfoResponse;
     }
@@ -68,17 +76,32 @@ public class UserServiceImpl implements UserService {
                     throw new CustomException("Данный логин уже существует", HttpStatus.CONFLICT);
                 });
 
-        if (request.getBirthDate().isAfter(LocalDate.now().minusYears(18))) {
-            throw new CustomException("Пользователь не может быть младше 18 лет", HttpStatus.BAD_REQUEST);
+        LocalDate bDay = null;
+
+        if (request.getBirthDay() == null) {
+            throw new CustomException("Дата рождения должна быть укзаана", HttpStatus.BAD_REQUEST);
+        }
+        else {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            try {
+                bDay = LocalDate.parse(request.getBirthDay(), formatter);
+                if (bDay.isAfter(LocalDate.now().minusYears(18))) {
+                    throw new CustomException("Пользователь не может быть младше 18 лет", HttpStatus.BAD_REQUEST);
+                }
+            } catch (DateTimeParseException e) {
+                throw new CustomException("Некорректная дата рождения", HttpStatus.BAD_REQUEST);
+            }
         }
 
         User user = mapper.convertValue(request, User.class);
+        user.setBirthDate(bDay);
         user.setStatus(CommonStatus.CREATED);
         user.setCreatedAt(LocalDateTime.now());
 
         user = userRepo.save(user);
         UserInfoResponse response = mapper.convertValue(user, UserInfoResponse.class);
         response.setPassword("Скрыто");
+        response.setBirthDay(user.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
         return response;
     }
@@ -107,13 +130,20 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(request.getFirstName() == null? user.getFirstName() : request.getFirstName());
         user.setLastName(request.getLastName() == null ? user.getLastName() : request.getLastName());
 
-        if (request.getBirthDate() != null &&
-                !request.getBirthDate().isAfter(LocalDate.now().minusYears(18))) {
-            user.setBirthDate(request.getBirthDate());
+        LocalDate bDay = null;
+
+        if (request.getBirthDay() != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            try {
+                bDay = LocalDate.parse(request.getBirthDay(), formatter);
+                if (bDay.isAfter(LocalDate.now().minusYears(18))) {
+                    throw new CustomException("Пользователь не может быть младше 18 лет", HttpStatus.BAD_REQUEST);
+                }
+            } catch (DateTimeParseException e) {
+                throw new CustomException("Некорректная дата рождения", HttpStatus.BAD_REQUEST);
+            }
         }
-        else if (request.getBirthDate().isAfter(LocalDate.now().minusYears(18))) {
-            throw new CustomException("Пользователь не может быть младше 18 лет", HttpStatus.CONFLICT);
-        }
+        user.setBirthDate(bDay == null ? user.getBirthDate() : bDay);
 
         user.setStatus(CommonStatus.UPDATED);
         user.setUpdatedAt(LocalDateTime.now());
@@ -121,6 +151,7 @@ public class UserServiceImpl implements UserService {
         user = userRepo.save(user);
         UserInfoResponse response = mapper.convertValue(user, UserInfoResponse.class);
         response.setPassword("Скрыто");
+        response.setBirthDay(user.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
         return response;
     }

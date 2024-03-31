@@ -18,9 +18,9 @@ import java.util.List;
 public interface QuestionRepo  extends JpaRepository<Question, Long> {
     Page<Question> findAllByStatus(Pageable pageable, QuestionStatus status);
 
-    @Query(nativeQuery = true, value = "select * from questions where complexity >= coalesce(:minComplexity,0) and complexity <= coalesce(:maxComplexity, 5) and status = 2 order by random() limit coalesce(:number, 10)")
-    List<Question> findByQuestionPackRequest(@Param("minComplexity") QuestionComplexity minComplexity,
-                                             @Param("maxComplexity") QuestionComplexity maxComplexity,
+    @Query(nativeQuery = true, value = "select * from questions where complexity >= :minComplexity and complexity <= :maxComplexity and status = 2 order by random() limit :number")
+    List<Question> findByQuestionPackRequest(@Param("minComplexity") Integer minComplexity,
+                                             @Param("maxComplexity") Integer maxComplexity,
                                              @Param("number") Integer number);
 
     @Query(value = "select * from questions where (status = 0 and created_At > (current_date-31)) or (status = 1 and updated_At > (current_date-31))",

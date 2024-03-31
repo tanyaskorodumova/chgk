@@ -3,6 +3,7 @@ package com.itmo.chgk.controllers;
 import com.itmo.chgk.model.dto.request.GameInfoRequest;
 import com.itmo.chgk.model.dto.request.QuestionPackRequest;
 import com.itmo.chgk.model.dto.response.*;
+import com.itmo.chgk.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -12,36 +13,35 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/games")
 @RequiredArgsConstructor
 public class GameController {
+    private final GameService gameService;
 
     @GetMapping("/all")
-    public Page<TeamInfoResponse> getAllGames(@RequestParam(defaultValue = "1") Integer page,
+    public Page<GameInfoResponse> getAllGames(@RequestParam(defaultValue = "1") Integer page,
                                               @RequestParam(defaultValue = "10") Integer perPage,
                                               @RequestParam(defaultValue = "id") String sort,
                                               @RequestParam(defaultValue = "ASC") Sort.Direction order)
     {
-        //return questionService.getAllCars(page, perPage, sort, order);
-        return null;
+        return gameService.getAllGames(page, perPage, sort, order);
     }
 
     @GetMapping("/{id}")
     public GameInfoResponse getGame(@PathVariable Long id) {
-        //return carService.getCar(id);
-        return null;
+        return gameService.getGame(id);
     }
 
     @PostMapping("/new")
     public GameInfoResponse createGame(@RequestBody GameInfoRequest request) {
-        return null;
+        return gameService.createGame(request);
     }
 
     @PutMapping("/{id}")
     public GameInfoResponse updateGame(@PathVariable Long id, @RequestBody GameInfoRequest request) {
-        return null;
+        return gameService.updateGame(id, request);
     }
 
     @DeleteMapping("/{id}")
     public void deleteGame(@PathVariable Long id) {
-
+        gameService.deleteGame(id);
     }
 
     @PostMapping("/{gameId}/participants/add/{teamId}")
@@ -50,7 +50,7 @@ public class GameController {
                                                  @RequestParam(defaultValue = "10") Integer perPage,
                                                  @RequestParam(defaultValue = "points") String sort,
                                                  @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.addParticipant(gameId, teamId, page, perPage, sort, order);
     }
 
     @PutMapping("/{gameId}/participants/approve/{teamId}")
@@ -59,7 +59,7 @@ public class GameController {
                                                      @RequestParam(defaultValue = "10") Integer perPage,
                                                      @RequestParam(defaultValue = "points") String sort,
                                                      @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.approveParticipant(gameId, teamId, page, perPage, sort, order);
     }
 
     @DeleteMapping("/{gameId}/participants/delete/{teamId}")
@@ -68,7 +68,7 @@ public class GameController {
                                                      @RequestParam(defaultValue = "10") Integer perPage,
                                                      @RequestParam(defaultValue = "points") String sort,
                                                      @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.deleteParticipant(gameId, teamId, page, perPage, sort, order);
     }
 
     @GetMapping("/{id}/participants/all")
@@ -77,7 +77,7 @@ public class GameController {
                                                      @RequestParam(defaultValue = "10") Integer perPage,
                                                      @RequestParam(defaultValue = "points") String sort,
                                                      @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.getAllParticipants(id, page, perPage, sort, order);
     }
 
     @GetMapping("/{id}/participants/approved")
@@ -86,7 +86,7 @@ public class GameController {
                                                   @RequestParam(defaultValue = "10") Integer perPage,
                                                   @RequestParam(defaultValue = "points") String sort,
                                                   @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.getParticipants(id, page, perPage, sort, order);
     }
 
     @GetMapping("/{id}/questions")
@@ -95,7 +95,7 @@ public class GameController {
                                                        @RequestParam(defaultValue = "10") Integer perPage,
                                                        @RequestParam(defaultValue = "id") String sort,
                                                        @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.getGameQuestions(id, page, perPage, sort, order);
     }
 
     @PostMapping("/{id}/questions/setPack")
@@ -104,7 +104,7 @@ public class GameController {
                                                        @RequestParam(defaultValue = "10") Integer perPage,
                                                        @RequestParam(defaultValue = "id") String sort,
                                                        @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.setGameQuestions(id, request, page, perPage, sort, order);
     }
 
     @PostMapping("/{gameId}/questions/set/{questionId}")
@@ -113,7 +113,7 @@ public class GameController {
                                                        @RequestParam(defaultValue = "10") Integer perPage,
                                                        @RequestParam(defaultValue = "id") String sort,
                                                        @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.setGameQuestion(gameId, questionId, page, perPage, sort, order);
     }
 
     @DeleteMapping("/{gameId}/questions/delete/{questionId}")
@@ -122,7 +122,7 @@ public class GameController {
                                                            @RequestParam(defaultValue = "10") Integer perPage,
                                                            @RequestParam(defaultValue = "id") String sort,
                                                            @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.deleteGameQuestion(gameId, questionId, page, perPage, sort, order);
     }
 
     @GetMapping("/{id}/results/questions")
@@ -131,7 +131,7 @@ public class GameController {
                                                                  @RequestParam(defaultValue = "10") Integer perPage,
                                                                  @RequestParam(defaultValue = "round") String sort,
                                                                  @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.getQuestionsResults(id, page, perPage, sort, order);
     }
 
     @GetMapping("/{id}/results/final")
@@ -140,7 +140,7 @@ public class GameController {
                                                    @RequestParam(defaultValue = "10") Integer perPage,
                                                    @RequestParam(defaultValue = "place") String sort,
                                                    @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return null;
+        return gameService.getResults(id, page, perPage, sort, order);
     }
 
 }

@@ -68,8 +68,10 @@ public class TeamServiceImpl implements TeamService {
         TeamInfoResponse response = mapper.convertValue(team, TeamInfoResponse.class);
         UserInfoResponse captain = mapper.convertValue(team.getCaptain(), UserInfoResponse.class);
         captain.setPassword("Скрыто");
-        UserInfoResponse viceCaptain = mapper.convertValue(team.getViceCaptain(), UserInfoResponse.class);
-        viceCaptain.setPassword("Скрыто");
+        UserInfoResponse viceCaptain = team.getViceCaptain() == null ? null : mapper.convertValue(team.getViceCaptain(), UserInfoResponse.class);
+        if (viceCaptain != null) {
+            viceCaptain.setPassword("Скрыто");
+        }
         response.setCaptain(captain);
         response.setViceCaptain(viceCaptain);
         return response;
@@ -77,6 +79,10 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public TeamInfoResponse createTeam(TeamInfoRequest request) {
+        if (request.getTeamName() == null) {
+            throw new CustomException("Необходимо указать название команды", HttpStatus.BAD_REQUEST);
+        }
+
         if (request.getCaptainId() == null) {
             throw new CustomException("Необходимо указать id капитана", HttpStatus.BAD_REQUEST);
         }

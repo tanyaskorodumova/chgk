@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/teams")
 @RequiredArgsConstructor
@@ -35,7 +37,7 @@ public class TeamController {
     }
 
     @PutMapping("/{id}")
-    public TeamInfoResponse updateTeam(@PathVariable Long id, @RequestBody TeamInfoRequest request) {
+    public TeamInfoResponse updateTeam(@PathVariable Long id, @RequestBody @Valid TeamInfoRequest request) {
         return teamService.updateTeam(id, request);
     }
 

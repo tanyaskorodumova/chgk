@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -29,12 +31,12 @@ public class UserController {
     }
 
     @PostMapping("/new")
-    public UserInfoResponse createUser(@RequestBody UserInfoRequest request) {
+    public UserInfoResponse createUser(@RequestBody @Valid UserInfoRequest request) {
         return userService.createUser(request);
     }
 
     @PutMapping("/{id}")
-    public UserInfoResponse updateUser(@PathVariable Long id, @RequestBody UserInfoRequest request) {
+    public UserInfoResponse updateUser(@PathVariable Long id, @RequestBody @Valid UserInfoRequest request) {
         return userService.updateUser(id, request);
     }
 

@@ -64,7 +64,7 @@ public class QuestionController {
     @PutMapping("/approve/{id}")
     public QuestionInfoResponse approveQuestion(@PathVariable Long id,
                                                 @RequestBody QuestionInfoRequest request,
-                                                @RequestBody QuestionStatus status) {
+                                                @RequestParam QuestionStatus status) {
         return questionService.approveQuestion(id, request, status);
     }
 

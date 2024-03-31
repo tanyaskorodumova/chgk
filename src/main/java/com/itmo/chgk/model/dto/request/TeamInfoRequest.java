@@ -1,5 +1,8 @@
 package com.itmo.chgk.model.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -14,9 +17,9 @@ import javax.validation.constraints.NotEmpty;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TeamInfoRequest {
-    @NotEmpty
     String teamName;
 
     Long captainId;
+
     Long viceCaptainId;
 }

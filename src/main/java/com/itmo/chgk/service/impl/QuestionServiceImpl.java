@@ -63,14 +63,14 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request) {
-        List<Question> questions = questionRepo.findByQuestionPackRequest(request.getMinComplexity(),
-                request.getMaxComplexity(),
-                request.getNumber());
+        List<Question> questions = questionRepo.findByQuestionPackRequest(request.getMinComplexity() == null? 0 : request.getMinComplexity().ordinal(),
+                request.getMaxComplexity() == null ? 5 : request.getMaxComplexity().ordinal(),
+                request.getNumber() == null ? 10 : request.getNumber());
         List<QuestionInfoResponse> questionInfoResponses = questions.stream()
                 .map(question -> {
                     QuestionInfoResponse questionInfoResponse = mapper.convertValue(question, QuestionInfoResponse.class);
-                    questionInfoResponse.setAnswer("");
-                    questionInfoResponse.setSource("");
+                    questionInfoResponse.setAnswer("Скрыто");
+                    questionInfoResponse.setSource("Скрыто");
                     return questionInfoResponse;
                 })
                 .collect(Collectors.toList());

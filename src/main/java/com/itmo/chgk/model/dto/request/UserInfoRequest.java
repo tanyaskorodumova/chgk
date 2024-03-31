@@ -3,12 +3,10 @@ package com.itmo.chgk.model.dto.request;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.mapping.List;
+
 
 import javax.validation.constraints.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Calendar;
+
 
 @Getter
 @Setter
@@ -36,6 +34,5 @@ public class UserInfoRequest {
     @Pattern(regexp = "^\\D*$", message = "Фамилия не должна содержать цифр")
     String lastName;
 
-    @Past()
-    LocalDate birthDate;
+    String birthDay;
 }
