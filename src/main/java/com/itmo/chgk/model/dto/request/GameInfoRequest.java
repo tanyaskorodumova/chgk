@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.Future;
+import javax.validation.constraints.Min;
 import java.time.LocalDateTime;
 
 @Getter
@@ -23,5 +24,8 @@ public class GameInfoRequest {
     String place;
     Long tournamentId;
     Stage stage;
+
+    @Min(value = 1, message = "Максимальное количество участников не может быть меньше 1")
+    Integer maxParticipants;
 
 }

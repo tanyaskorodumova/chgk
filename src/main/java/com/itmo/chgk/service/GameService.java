@@ -17,15 +17,15 @@ public interface GameService {
 
     void deleteGame(Long id);
 
-    Page<TeamInfoResponse> addParticipant(Long gameId, Long teamId, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<ParticipantsInfoResponse> addParticipant(Long gameId, Long teamId, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<TeamInfoResponse> approveParticipant(Long gameId, Long teamId, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<ParticipantsInfoResponse> approveParticipant(Long gameId, Long teamId, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<TeamInfoResponse> deleteParticipant(Long gameId, Long teamId, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<ParticipantsInfoResponse> deleteParticipant(Long gameId, Long teamId, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<TeamInfoResponse> getAllParticipants(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<ParticipantsInfoResponse> getAllParticipants(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<TeamInfoResponse> getParticipants(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<ParticipantsInfoResponse> getParticipants(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
     Page<QuestionInfoResponse> getGameQuestions(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 

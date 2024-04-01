@@ -2,10 +2,7 @@ package com.itmo.chgk.controllers;
 
 import com.itmo.chgk.model.dto.request.TeamInfoRequest;
 import com.itmo.chgk.model.dto.request.TournamentInfoRequest;
-import com.itmo.chgk.model.dto.response.GameInfoResponse;
-import com.itmo.chgk.model.dto.response.TeamInfoResponse;
-import com.itmo.chgk.model.dto.response.TournamentInfoResponse;
-import com.itmo.chgk.model.dto.response.TournamentTableInfoResponse;
+import com.itmo.chgk.model.dto.response.*;
 import com.itmo.chgk.service.TournamentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -59,11 +56,11 @@ public class TournamentController {
     }
 
     @GetMapping("/{id}/participants")
-    public Page<TeamInfoResponse> getTournamentParticipants(@PathVariable Long id,
-                                                            @RequestParam(defaultValue = "1") Integer page,
-                                                            @RequestParam(defaultValue = "10") Integer perPage,
-                                                            @RequestParam(defaultValue = "points") String sort,
-                                                            @RequestParam(defaultValue = "ASC") Sort.Direction order) {
+    public Page<ParticipantsInfoResponse> getTournamentParticipants(@PathVariable Long id,
+                                                                    @RequestParam(defaultValue = "1") Integer page,
+                                                                    @RequestParam(defaultValue = "10") Integer perPage,
+                                                                    @RequestParam(defaultValue = "points") String sort,
+                                                                    @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return tournamentService.getTournamentParticipants(id, page, perPage, sort, order);
     }
 

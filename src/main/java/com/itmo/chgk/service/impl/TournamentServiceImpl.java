@@ -2,19 +2,14 @@ package com.itmo.chgk.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itmo.chgk.exceptions.CustomException;
-import com.itmo.chgk.model.db.entity.Game;
-import com.itmo.chgk.model.db.entity.Tournament;
-import com.itmo.chgk.model.db.entity.TournamentTable;
-import com.itmo.chgk.model.db.repository.GameRepo;
-import com.itmo.chgk.model.db.repository.TournamentRepo;
-import com.itmo.chgk.model.db.repository.TournamentTableRepo;
+import com.itmo.chgk.model.db.entity.*;
+import com.itmo.chgk.model.db.repository.*;
 import com.itmo.chgk.model.dto.request.TournamentInfoRequest;
-import com.itmo.chgk.model.dto.response.GameInfoResponse;
-import com.itmo.chgk.model.dto.response.TeamInfoResponse;
-import com.itmo.chgk.model.dto.response.TournamentInfoResponse;
-import com.itmo.chgk.model.dto.response.TournamentTableInfoResponse;
+import com.itmo.chgk.model.dto.response.*;
 import com.itmo.chgk.model.enums.GameStatus;
+import com.itmo.chgk.model.enums.ParticipantStatus;
 import com.itmo.chgk.model.enums.TournamentStatus;
+import com.itmo.chgk.service.TeamService;
 import com.itmo.chgk.service.TournamentService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +33,9 @@ public class TournamentServiceImpl implements TournamentService {
 
     private final TournamentRepo tournamentRepo;
     private final GameRepo gameRepo;
+    private final GameParticipantRepo gameParticipantRepo;
     private final TournamentTableRepo tournamentTableRepo;
+    private final TeamService teamService;
 
     @Override
     public Page<TournamentInfoResponse> getAllTournaments(Integer page, Integer perPage, String sort, Sort.Direction order) {
@@ -138,12 +135,42 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public Page<GameInfoResponse> getTournamentGames(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+        Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        Tournament tournament = getTournamentDb(id);
+
+        List<GameInfoResponse> all = gameRepo.findAllByTournamentAndStatusIsNot(tournament, GameStatus.CANCELLED, request)
+                .getContent()
+                .stream()
+                .map(game -> {
+                    GameInfoResponse response = mapper.convertValue(game, GameInfoResponse.class);
+                    response.setTournament(mapper.convertValue(tournament, TournamentInfoResponse.class));
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(all);
     }
 
     @Override
-    public Page<TeamInfoResponse> getTournamentParticipants(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+    public Page<ParticipantsInfoResponse> getTournamentParticipants(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        Tournament tournament = getTournamentDb(id);
+
+        List<ParticipantsInfoResponse> all = gameParticipantRepo.findAllByTournament(tournament, request)
+                .getContent()
+                .stream()
+                .map(gameParticipant -> {
+                    TeamInfoResponse teamInfoResponse = teamService.getTeam(gameParticipant.getParticipant().getId());
+                    ParticipantStatus status = gameParticipant.getStatus();
+                    ParticipantsInfoResponse response = mapper.convertValue(teamInfoResponse, ParticipantsInfoResponse.class);
+                    response.setParticipantStatus(status);
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(all);
     }
 
     @Override

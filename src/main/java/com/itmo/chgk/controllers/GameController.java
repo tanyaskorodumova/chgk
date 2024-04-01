@@ -45,7 +45,7 @@ public class GameController {
     }
 
     @PostMapping("/{gameId}/participants/add/{teamId}")
-    public Page<TeamInfoResponse> addParticipant(@PathVariable Long gameId, @PathVariable Long teamId,
+    public Page<ParticipantsInfoResponse> addParticipant(@PathVariable Long gameId, @PathVariable Long teamId,
                                                  @RequestParam(defaultValue = "1") Integer page,
                                                  @RequestParam(defaultValue = "10") Integer perPage,
                                                  @RequestParam(defaultValue = "points") String sort,
@@ -54,7 +54,7 @@ public class GameController {
     }
 
     @PutMapping("/{gameId}/participants/approve/{teamId}")
-    public Page<TeamInfoResponse> approveParticipant(@PathVariable Long gameId, @PathVariable Long teamId,
+    public Page<ParticipantsInfoResponse> approveParticipant(@PathVariable Long gameId, @PathVariable Long teamId,
                                                      @RequestParam(defaultValue = "1") Integer page,
                                                      @RequestParam(defaultValue = "10") Integer perPage,
                                                      @RequestParam(defaultValue = "points") String sort,
@@ -63,7 +63,7 @@ public class GameController {
     }
 
     @DeleteMapping("/{gameId}/participants/delete/{teamId}")
-    public Page<TeamInfoResponse> deleteParticipant(@PathVariable Long gameId, @PathVariable Long teamId,
+    public Page<ParticipantsInfoResponse> deleteParticipant(@PathVariable Long gameId, @PathVariable Long teamId,
                                                      @RequestParam(defaultValue = "1") Integer page,
                                                      @RequestParam(defaultValue = "10") Integer perPage,
                                                      @RequestParam(defaultValue = "points") String sort,
@@ -72,7 +72,7 @@ public class GameController {
     }
 
     @GetMapping("/{id}/participants/all")
-    public Page<TeamInfoResponse> getAllParticipants(@PathVariable Long id,
+    public Page<ParticipantsInfoResponse> getAllParticipants(@PathVariable Long id,
                                                      @RequestParam(defaultValue = "1") Integer page,
                                                      @RequestParam(defaultValue = "10") Integer perPage,
                                                      @RequestParam(defaultValue = "points") String sort,
@@ -81,7 +81,7 @@ public class GameController {
     }
 
     @GetMapping("/{id}/participants/approved")
-    public Page<TeamInfoResponse> getParticipants(@PathVariable Long id,
+    public Page<ParticipantsInfoResponse> getParticipants(@PathVariable Long id,
                                                   @RequestParam(defaultValue = "1") Integer page,
                                                   @RequestParam(defaultValue = "10") Integer perPage,
                                                   @RequestParam(defaultValue = "points") String sort,

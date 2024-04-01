@@ -42,6 +42,11 @@ public class Game {
 
     Stage stage;
 
+    @Column(name = "max_participants")
+    Integer maxParticipants;
+
+    Integer vacant;
+
     GameStatus status;
 
     @Column(name = "created_at")

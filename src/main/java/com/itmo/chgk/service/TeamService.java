@@ -1,5 +1,6 @@
 package com.itmo.chgk.service;
 
+import com.itmo.chgk.model.db.entity.Team;
 import com.itmo.chgk.model.dto.request.TeamInfoRequest;
 import com.itmo.chgk.model.dto.response.TeamInfoResponse;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
@@ -22,5 +23,7 @@ public interface TeamService {
     Page<UserInfoResponse> deleteMember(Long teamId, Long userId, Integer page, Integer perPage, String sort, Sort.Direction order);
 
     Page<UserInfoResponse> getMembers(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
+
+    Team getTeamDb(Long id);
 
 }

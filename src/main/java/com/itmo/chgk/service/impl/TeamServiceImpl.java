@@ -58,6 +58,7 @@ public class TeamServiceImpl implements TeamService {
         return new PageImpl<>(allTeams);
     }
 
+    @Override
     public Team getTeamDb(Long id) {
         return teamRepo.findById(id).orElseThrow(() -> new CustomException("Команда не найдена", HttpStatus.NOT_FOUND));
     }
