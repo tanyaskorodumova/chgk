@@ -34,8 +34,12 @@ public class QuestionController {
     }
 
     @GetMapping("/training/package")
-    public List<QuestionInfoResponse> getQuestionPack(@RequestBody QuestionPackRequest request) {
-        return questionService.getQuestionPack(request);
+    public Page<QuestionInfoResponse> getQuestionPack(@RequestBody QuestionPackRequest request,
+                                                      @RequestParam(defaultValue = "1") Integer page,
+                                                      @RequestParam(defaultValue = "10") Integer perPage,
+                                                      @RequestParam(defaultValue = "id") String sort,
+                                                      @RequestParam(defaultValue = "ASC") Sort.Direction order) {
+        return questionService.getQuestionPack(request, page, perPage, sort, order);
     }
 
     @GetMapping("/{id}/answer")

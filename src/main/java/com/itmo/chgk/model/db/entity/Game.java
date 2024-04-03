@@ -1,6 +1,7 @@
 package com.itmo.chgk.model.db.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -32,12 +33,13 @@ public class Game {
     @Column(name = "game_date_time")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonFormat(pattern = "dd.MM.yyyy HH:mm")
     LocalDateTime gameDateTime;
 
     String place;
 
     @ManyToOne
-    @JsonManagedReference(value = "tournament_games")
+    @JsonBackReference(value = "tournament_games")
     Tournament tournament;
 
     Stage stage;

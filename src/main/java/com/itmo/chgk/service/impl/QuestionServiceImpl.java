@@ -39,8 +39,8 @@ public class QuestionServiceImpl implements QuestionService {
                 .stream()
                 .map(question -> {
                     QuestionInfoResponse questionInfoResponse = mapper.convertValue(question, QuestionInfoResponse.class);
-                    questionInfoResponse.setAnswer("");
-                    questionInfoResponse.setSource("");
+                    questionInfoResponse.setAnswer("Скрыто");
+                    questionInfoResponse.setSource("Скрыто");
                     return questionInfoResponse;
                 })
                 .collect(Collectors.toList());
@@ -48,6 +48,7 @@ public class QuestionServiceImpl implements QuestionService {
         return new PageImpl<>(all);
     }
 
+    @Override
     public Question getQuestionDb(Long id) {
         return questionRepo.findById(id).orElseThrow(() -> new CustomException("Вопрос не найден", HttpStatus.NOT_FOUND));
     }
@@ -62,11 +63,15 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request) {
-        List<Question> questions = questionRepo.findByQuestionPackRequest(request.getMinComplexity() == null? 0 : request.getMinComplexity().ordinal(),
+    public Page<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Pageable pageable = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        List<QuestionInfoResponse> questions = questionRepo.findByQuestionPackRequest(request.getMinComplexity() == null? 0 : request.getMinComplexity().ordinal(),
                 request.getMaxComplexity() == null ? 5 : request.getMaxComplexity().ordinal(),
-                request.getNumber() == null ? 10 : request.getNumber());
-        List<QuestionInfoResponse> questionInfoResponses = questions.stream()
+                request.getNumber() == null ? 10 : request.getNumber(),
+                pageable)
+                .getContent()
+                .stream()
                 .map(question -> {
                     QuestionInfoResponse questionInfoResponse = mapper.convertValue(question, QuestionInfoResponse.class);
                     questionInfoResponse.setAnswer("Скрыто");
@@ -74,7 +79,8 @@ public class QuestionServiceImpl implements QuestionService {
                     return questionInfoResponse;
                 })
                 .collect(Collectors.toList());
-        return questionInfoResponses;
+
+        return new PageImpl<>(questions);
     }
 
     @Override
@@ -158,5 +164,7 @@ public class QuestionServiceImpl implements QuestionService {
         question.setUpdatedAt(LocalDateTime.now());
         question = questionRepo.save(question);
     }
+
+
 
 }

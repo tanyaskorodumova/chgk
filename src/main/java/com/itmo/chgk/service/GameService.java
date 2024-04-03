@@ -27,13 +27,13 @@ public interface GameService {
 
     Page<ParticipantsInfoResponse> getParticipants(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<QuestionInfoResponse> getGameQuestions(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<GameQuestionInfoResponse> getGameQuestions(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<QuestionInfoResponse> setGameQuestions(Long id, QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<GameQuestionInfoResponse> setGameQuestions(Long id, QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<QuestionInfoResponse> setGameQuestion(Long gameId, Long questionId, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<GameQuestionInfoResponse> setGameQuestion(Long gameId, Long questionId, Integer round, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<QuestionInfoResponse> deleteGameQuestion(Long gameId, Long questionId, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<GameQuestionInfoResponse> deleteGameQuestion(Long gameId, Long questionId, Integer page, Integer perPage, String sort, Sort.Direction order);
 
     Page<QuestionResultsInfoResponse> getQuestionsResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/games")
 @RequiredArgsConstructor
@@ -30,12 +32,12 @@ public class GameController {
     }
 
     @PostMapping("/new")
-    public GameInfoResponse createGame(@RequestBody GameInfoRequest request) {
+    public GameInfoResponse createGame(@RequestBody @Valid GameInfoRequest request) {
         return gameService.createGame(request);
     }
 
     @PutMapping("/{id}")
-    public GameInfoResponse updateGame(@PathVariable Long id, @RequestBody GameInfoRequest request) {
+    public GameInfoResponse updateGame(@PathVariable Long id, @RequestBody @Valid GameInfoRequest request) {
         return gameService.updateGame(id, request);
     }
 
@@ -90,7 +92,7 @@ public class GameController {
     }
 
     @GetMapping("/{id}/questions")
-    public Page<QuestionInfoResponse> getGameQuestions(@PathVariable Long id,
+    public Page<GameQuestionInfoResponse> getGameQuestions(@PathVariable Long id,
                                                        @RequestParam(defaultValue = "1") Integer page,
                                                        @RequestParam(defaultValue = "10") Integer perPage,
                                                        @RequestParam(defaultValue = "id") String sort,
@@ -99,7 +101,7 @@ public class GameController {
     }
 
     @PostMapping("/{id}/questions/setPack")
-    public Page<QuestionInfoResponse> setGameQuestions(@PathVariable Long id, @RequestBody QuestionPackRequest request,
+    public Page<GameQuestionInfoResponse> setGameQuestions(@PathVariable Long id, @RequestBody QuestionPackRequest request,
                                                        @RequestParam(defaultValue = "1") Integer page,
                                                        @RequestParam(defaultValue = "10") Integer perPage,
                                                        @RequestParam(defaultValue = "id") String sort,
@@ -107,23 +109,25 @@ public class GameController {
         return gameService.setGameQuestions(id, request, page, perPage, sort, order);
     }
 
-    @PostMapping("/{gameId}/questions/set/{questionId}")
-    public Page<QuestionInfoResponse> setGameQuestion(@PathVariable Long gameId, @PathVariable Long questionId,
+    @PostMapping("/{gameId}/questions/set/{round}/{questionId}")
+    public Page<GameQuestionInfoResponse> setGameQuestion(@PathVariable Long gameId, @PathVariable Long questionId, @PathVariable Integer round,
                                                        @RequestParam(defaultValue = "1") Integer page,
                                                        @RequestParam(defaultValue = "10") Integer perPage,
                                                        @RequestParam(defaultValue = "id") String sort,
                                                        @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return gameService.setGameQuestion(gameId, questionId, page, perPage, sort, order);
+        return gameService.setGameQuestion(gameId, questionId, round, page, perPage, sort, order);
     }
 
     @DeleteMapping("/{gameId}/questions/delete/{questionId}")
-    public Page<QuestionInfoResponse> deleteGameQuestion(@PathVariable Long gameId, @PathVariable Long questionId,
+    public Page<GameQuestionInfoResponse> deleteGameQuestion(@PathVariable Long gameId, @PathVariable Long questionId,
                                                            @RequestParam(defaultValue = "1") Integer page,
                                                            @RequestParam(defaultValue = "10") Integer perPage,
                                                            @RequestParam(defaultValue = "id") String sort,
                                                            @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return gameService.deleteGameQuestion(gameId, questionId, page, perPage, sort, order);
     }
+
+
 
     @GetMapping("/{id}/results/questions")
     public Page<QuestionResultsInfoResponse> getQuestionsResults(@PathVariable Long id,

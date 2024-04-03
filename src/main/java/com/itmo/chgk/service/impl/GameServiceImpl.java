@@ -2,19 +2,14 @@ package com.itmo.chgk.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itmo.chgk.exceptions.CustomException;
-import com.itmo.chgk.model.db.entity.Game;
-import com.itmo.chgk.model.db.entity.GameParticipant;
-import com.itmo.chgk.model.db.entity.Team;
-import com.itmo.chgk.model.db.entity.Tournament;
+import com.itmo.chgk.model.db.entity.*;
 import com.itmo.chgk.model.db.repository.*;
 import com.itmo.chgk.model.dto.request.GameInfoRequest;
 import com.itmo.chgk.model.dto.request.QuestionPackRequest;
 import com.itmo.chgk.model.dto.response.*;
-import com.itmo.chgk.model.enums.GameStatus;
-import com.itmo.chgk.model.enums.ParticipantStatus;
-import com.itmo.chgk.model.enums.Stage;
-import com.itmo.chgk.model.enums.TournamentStatus;
+import com.itmo.chgk.model.enums.*;
 import com.itmo.chgk.service.GameService;
+import com.itmo.chgk.service.QuestionService;
 import com.itmo.chgk.service.TeamService;
 import com.itmo.chgk.service.TournamentService;
 import com.itmo.chgk.utils.PaginationUtil;
@@ -29,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,10 +37,12 @@ public class GameServiceImpl implements GameService {
     private final TournamentRepo tournamentRepo;
     private final GameParticipantRepo gameParticipantRepo;
     private final GameQuestionRepo gameQuestionRepo;
+    private final QuestionRepo questionRepo;
     private final QuestionResultRepo questionResultRepo;
 
     private final TournamentService tournamentService;
     private final TeamService teamService;
+    private final QuestionService questionService;
 
     @Override
     public Page<GameInfoResponse> getAllGames(Integer page, Integer perPage, String sort, Sort.Direction order) {
@@ -80,7 +78,7 @@ public class GameServiceImpl implements GameService {
         if (request.getGameName() == null) {
             throw new CustomException("Необходимо ввести название игры", HttpStatus.BAD_REQUEST);
         }
-        if (request.getDateTime() == null) {
+        if (request.getGameDateTime() == null) {
             throw new CustomException("Необходимо ввести дату и время проведения игры", HttpStatus.BAD_REQUEST);
         }
         if (request.getPlace() == null) {
@@ -178,7 +176,7 @@ public class GameServiceImpl implements GameService {
         }
 
         game.setGameName(request.getGameName() == null ? game.getGameName() : request.getGameName());
-        game.setGameDateTime(request.getDateTime() == null ? game.getGameDateTime() : request.getDateTime());
+        game.setGameDateTime(request.getGameDateTime() == null ? game.getGameDateTime() : request.getGameDateTime());
         game.setPlace(request.getPlace() == null ? game.getPlace() : request.getPlace());
         game.setUpdatedAt(LocalDateTime.now());
         game.setStatus(GameStatus.CHANGED);
@@ -248,12 +246,54 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Page<ParticipantsInfoResponse> approveParticipant(Long gameId, Long teamId, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+        Game game = getGameDb(gameId);
+        Team participant = teamService.getTeamDb(teamId);
+        GameParticipant gameParticipant = gameParticipantRepo.findByGameAndParticipant(game, participant);
+
+        if (gameParticipant == null) {
+            throw new CustomException("Команда не зарегистрирована", HttpStatus.BAD_REQUEST);
+        } else if (gameParticipant.getStatus().equals(ParticipantStatus.APPROVED)) {
+            throw new CustomException("Участие подтверждено ранее", HttpStatus.BAD_REQUEST);
+        }
+
+        GameParticipant check = gameParticipantRepo.findByParticipantAndStatusIsNotAndTournament(participant,
+                ParticipantStatus.REJECTED, game.getTournament(), game.getStage());
+        if (check != null) {
+            throw new CustomException("Команда уже зарегистрирована на другую игру данного этапа", HttpStatus.BAD_REQUEST);
+        }
+
+        gameParticipant.setStatus(ParticipantStatus.APPROVED);
+        gameParticipant = gameParticipantRepo.save(gameParticipant);
+
+        return getParticipants(gameId, page, perPage, sort, order);
     }
 
     @Override
     public Page<ParticipantsInfoResponse> deleteParticipant(Long gameId, Long teamId, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+        Game game = getGameDb(gameId);
+        Team participant = teamService.getTeamDb(teamId);
+        GameParticipant gameParticipant = gameParticipantRepo.findByGameAndParticipant(game, participant);
+
+        if (gameParticipant == null) {
+            throw new CustomException("Участник игры не найден", HttpStatus.BAD_REQUEST);
+        } else if (gameParticipant.getStatus().equals(ParticipantStatus.REJECTED)) {
+            throw new CustomException("Участник отказался от участия ранее", HttpStatus.BAD_REQUEST);
+        } else if (gameParticipant.getStatus().equals(ParticipantStatus.APPROVED)) {
+            throw new CustomException("Участник подтвердил участие, удалить нельзя", HttpStatus.BAD_REQUEST);
+        }
+
+        if (game.getStatus().equals(GameStatus.FINISHED) ||
+            game.getStatus().equals(GameStatus.ONGOING)) {
+            throw new CustomException("Нельзя отказать от участия в начатой игре", HttpStatus.BAD_REQUEST);
+        }
+
+        gameParticipant.setStatus(ParticipantStatus.REJECTED);
+        gameParticipant = gameParticipantRepo.save(gameParticipant);
+
+        game.setVacant(game.getVacant()+1);
+        game = gameRepo.save(game);
+
+        return getAllParticipants(gameId, page, perPage, sort, order);
     }
 
     @Override
@@ -279,27 +319,165 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Page<ParticipantsInfoResponse> getParticipants(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+        Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        Game game = getGameDb(id);
+
+        List<ParticipantsInfoResponse> all = gameParticipantRepo.findAllByGameAndStatus(game, ParticipantStatus.APPROVED, request)
+                .getContent()
+                .stream()
+                .map(gameParticipant -> {
+                    TeamInfoResponse teamInfoResponse = teamService.getTeam(gameParticipant.getParticipant().getId());
+                    ParticipantStatus status = gameParticipant.getStatus();
+                    ParticipantsInfoResponse response = mapper.convertValue(teamInfoResponse, ParticipantsInfoResponse.class);
+                    response.setParticipantStatus(status);
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(all);
     }
 
     @Override
-    public Page<QuestionInfoResponse> getGameQuestions(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+    public Page<GameQuestionInfoResponse> getGameQuestions(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        Game game = getGameDb(id);
+
+        List<GameQuestionInfoResponse> all = gameQuestionRepo.findAllByGame(game, request)
+                .getContent()
+                .stream()
+                .map(gameQuestion -> {
+                    QuestionInfoResponse questionInfoResponse = questionService.getQuestion(gameQuestion.getQuestion().getId());
+                    GameQuestionInfoResponse response = mapper.convertValue(questionInfoResponse, GameQuestionInfoResponse.class);
+                    response.setRound(gameQuestion.getRound());
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(all);
     }
 
     @Override
-    public Page<QuestionInfoResponse> setGameQuestions(Long id, QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+    public Page<GameQuestionInfoResponse> setGameQuestions(Long id, QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Pageable pageable = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        List<GameQuestionInfoResponse> finalResponse = null;
+
+        Game game = getGameDb(id);
+
+        if (game.getStatus().equals(GameStatus.FINISHED) ||
+            game.getStatus().equals(GameStatus.ONGOING)) {
+            throw new CustomException("Игра уже начаалась", HttpStatus.BAD_REQUEST);
+        } else if (game.getStatus().equals(GameStatus.CANCELLED)) {
+            throw new CustomException("Игра отменена", HttpStatus.BAD_REQUEST);
+        }
+
+        AtomicInteger round = new AtomicInteger(0);
+
+        if (!game.getTournament().getLevel().equals(TournamentLevel.FEDERAL)) {
+            finalResponse = questionRepo.findGamePack(pageable,
+                            game.getId(),
+                            request.getMinComplexity() == null ? 0 : request.getMinComplexity().ordinal(),
+                            request.getMaxComplexity() == null ? 5 : request.getMaxComplexity().ordinal(),
+                            request.getNumber() == null ? 10 : request.getNumber())
+                    .getContent()
+                    .stream()
+                    .map(question -> {
+                        GameQuestion gameQuestion = new GameQuestion();
+                        gameQuestion.setGame(game);
+                        gameQuestion.setQuestion(question);
+                        gameQuestion.setRound(round.incrementAndGet());
+                        gameQuestion = gameQuestionRepo.save(gameQuestion);
+                        QuestionInfoResponse questionInfoResponse = mapper.convertValue(question, QuestionInfoResponse.class);
+                        GameQuestionInfoResponse response = mapper.convertValue(questionInfoResponse, GameQuestionInfoResponse.class);
+                        response.setRound(gameQuestion.getRound());
+                        return response;
+                    })
+                    .collect(Collectors.toList());
+        }
+        else {
+            finalResponse = questionRepo.findFedGamePack(pageable,
+                            request.getMinComplexity() == null ? 0 : request.getMinComplexity().ordinal(),
+                            request.getMaxComplexity() == null ? 5 : request.getMaxComplexity().ordinal(),
+                            request.getNumber() == null ? 10 : request.getNumber())
+                    .getContent()
+                    .stream()
+                    .map(question -> {
+                        GameQuestion gameQuestion = new GameQuestion();
+                        gameQuestion.setGame(game);
+                        gameQuestion.setQuestion(question);
+                        gameQuestion.setRound(round.incrementAndGet());
+                        gameQuestion = gameQuestionRepo.save(gameQuestion);
+                        QuestionInfoResponse questionInfoResponse = mapper.convertValue(question, QuestionInfoResponse.class);
+                        GameQuestionInfoResponse response = mapper.convertValue(questionInfoResponse, GameQuestionInfoResponse.class);
+                        response.setRound(gameQuestion.getRound());
+                        return response;
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        return new PageImpl<>(finalResponse);
     }
 
     @Override
-    public Page<QuestionInfoResponse> setGameQuestion(Long gameId, Long questionId, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+    public Page<GameQuestionInfoResponse> setGameQuestion(Long gameId, Long questionId, Integer round, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Game game = getGameDb(gameId);
+        Question question = questionService.getQuestionDb(questionId);
+
+        if (game.getStatus().equals(GameStatus.FINISHED) ||
+                game.getStatus().equals(GameStatus.ONGOING)) {
+            throw new CustomException("Игра уже начаалась", HttpStatus.BAD_REQUEST);
+        } else if (game.getStatus().equals(GameStatus.CANCELLED)) {
+            throw new CustomException("Игра отменена", HttpStatus.BAD_REQUEST);
+        }
+
+        if (!question.getStatus().equals(QuestionStatus.APPROVED)) {
+            throw new CustomException("Нельзя использовать данный вопрос: он не одобрен", HttpStatus.BAD_REQUEST);
+        }
+
+        if (gameQuestionRepo.findByQuestionAndGameStatusIsNot(question, GameStatus.CANCELLED) != null) {
+            throw new CustomException("Вопрос был использован в играх ранее", HttpStatus.BAD_REQUEST);
+        }
+
+        GameQuestion gameQuestion = new GameQuestion();
+        gameQuestion.setGame(game);
+        gameQuestion.setQuestion(question);
+        gameQuestion.setRound(round);
+        gameQuestion = gameQuestionRepo.save(gameQuestion);
+
+        return getGameQuestions(gameId, page, perPage, sort, order);
     }
 
     @Override
-    public Page<QuestionInfoResponse> deleteGameQuestion(Long gameId, Long questionId, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+    public Page<GameQuestionInfoResponse> deleteGameQuestion(Long gameId, Long questionId, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Game game = getGameDb(gameId);
+        Question question = questionService.getQuestionDb(questionId);
+
+        if (game.getStatus().equals(GameStatus.FINISHED) ||
+                game.getStatus().equals(GameStatus.ONGOING)) {
+            throw new CustomException("Игра уже начаалась", HttpStatus.BAD_REQUEST);
+        } else if (game.getStatus().equals(GameStatus.CANCELLED)) {
+            throw new CustomException("Игра отменена", HttpStatus.BAD_REQUEST);
+        }
+
+        GameQuestion gameQuestion = gameQuestionRepo.findByGameAndQuestion(game, question);
+        if (gameQuestion == null) {
+            throw new CustomException("Вопрос не заявлен на игру", HttpStatus.BAD_REQUEST);
+        }
+
+        Integer round = gameQuestion.getRound();
+        gameQuestionRepo.delete(gameQuestion);
+
+        gameQuestionRepo.findAllByGameAndRoundAfter(game, round)
+                .stream()
+                .map(gq -> {
+                    gq.setRound(gq.getRound()-1);
+                    gq = gameQuestionRepo.save(gq);
+                    return gq;
+                });
+
+        return getGameQuestions(gameId, page, perPage, sort, order);
     }
 
     @Override
