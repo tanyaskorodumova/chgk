@@ -2,6 +2,7 @@ package com.itmo.chgk.service;
 
 import com.itmo.chgk.model.dto.request.GameInfoRequest;
 import com.itmo.chgk.model.dto.request.QuestionPackRequest;
+import com.itmo.chgk.model.dto.request.RoundInfoRequest;
 import com.itmo.chgk.model.dto.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -35,7 +36,15 @@ public interface GameService {
 
     Page<GameQuestionInfoResponse> deleteGameQuestion(Long gameId, Long questionId, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<QuestionResultsInfoResponse> getQuestionsResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
+    Page<RoundInfoResponse> getQuestionsResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
     Page<GameResultInfoResponse> getResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
+
+    Page<RoundInfoResponse> getRoundInfo(Long id, Integer round, Integer page, Integer perPage, String sort, Sort.Direction order);
+
+    Page<RoundInfoResponse> setRoundResults(Long gameId, Integer round, Long teamId, RoundInfoRequest request, Integer page, Integer perPage, String sort, Sort.Direction order);
+
+    Page<GameResultInfoResponse> countResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
+
+    Page<GameQuestionInfoResponse> startGame(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 }

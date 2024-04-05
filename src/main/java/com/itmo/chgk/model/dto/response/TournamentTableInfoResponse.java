@@ -13,6 +13,7 @@ import lombok.experimental.SuperBuilder;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TournamentTableInfoResponse {
+    TournamentInfoResponse tournament;
     Long teamId;
     String teamName;
     Integer points;

@@ -41,6 +41,8 @@ public class Team {
 
     Integer points;
 
+    Integer answers;
+
     @Column(name = "correct_answers")
     Integer correctAnswers;
 

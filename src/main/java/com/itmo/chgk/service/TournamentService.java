@@ -25,4 +25,6 @@ public interface TournamentService {
     Page<TournamentTableInfoResponse> getTournamentResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
     Tournament getTournamentDb(Long id);
+
+    void countResults(Long id);
 }

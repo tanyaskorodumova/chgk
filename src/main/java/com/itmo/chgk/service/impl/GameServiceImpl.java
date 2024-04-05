@@ -6,6 +6,7 @@ import com.itmo.chgk.model.db.entity.*;
 import com.itmo.chgk.model.db.repository.*;
 import com.itmo.chgk.model.dto.request.GameInfoRequest;
 import com.itmo.chgk.model.dto.request.QuestionPackRequest;
+import com.itmo.chgk.model.dto.request.RoundInfoRequest;
 import com.itmo.chgk.model.dto.response.*;
 import com.itmo.chgk.model.enums.*;
 import com.itmo.chgk.service.GameService;
@@ -23,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -39,6 +41,8 @@ public class GameServiceImpl implements GameService {
     private final GameQuestionRepo gameQuestionRepo;
     private final QuestionRepo questionRepo;
     private final QuestionResultRepo questionResultRepo;
+    private final ResultRepo resultRepo;
+    private final TeamRepo teamRepo;
 
     private final TournamentService tournamentService;
     private final TeamService teamService;
@@ -220,7 +224,17 @@ public class GameServiceImpl implements GameService {
         }
 
         if (!game.getStage().equals(Stage.QUALIFYING)) {
-            throw new CustomException("Регистрация открыта только на отборочные игры", HttpStatus.BAD_REQUEST);
+            List<Game> prevStageGames = gameRepo.findAllByTournamentAndStageAndStatusIsNot(game.getTournament(),
+                    Stage.values()[game.getStage().ordinal() - 1], GameStatus.CANCELLED);
+
+            if (!prevStageGames.stream().allMatch(psg -> psg.getStatus().equals(GameStatus.FINISHED))) {
+                throw new CustomException("Игры предыдущей стадии еще не завершены", HttpStatus.BAD_REQUEST);
+            }
+
+            if (gameParticipantRepo.findByTournamentAndParticipantAndStageAndStatus(game.getTournament(),
+                    team, Stage.values()[game.getStage().ordinal() - 1], ParticipantStatus.APPROVED) == null) {
+                throw new CustomException("Команда не принимала участия в играх предыдущего этапа", HttpStatus.BAD_REQUEST);
+            }
         }
 
         if (game.getVacant() <= 0) {
@@ -310,6 +324,7 @@ public class GameServiceImpl implements GameService {
                     ParticipantStatus status = gameParticipant.getStatus();
                     ParticipantsInfoResponse response = mapper.convertValue(teamInfoResponse, ParticipantsInfoResponse.class);
                     response.setParticipantStatus(status);
+                    response.setGameId(game.getId());
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -331,6 +346,7 @@ public class GameServiceImpl implements GameService {
                     ParticipantStatus status = gameParticipant.getStatus();
                     ParticipantsInfoResponse response = mapper.convertValue(teamInfoResponse, ParticipantsInfoResponse.class);
                     response.setParticipantStatus(status);
+                    response.setGameId(game.getId());
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -348,7 +364,7 @@ public class GameServiceImpl implements GameService {
                 .getContent()
                 .stream()
                 .map(gameQuestion -> {
-                    QuestionInfoResponse questionInfoResponse = questionService.getQuestion(gameQuestion.getQuestion().getId());
+                    QuestionInfoResponse questionInfoResponse = mapper.convertValue(gameQuestion.getQuestion(), QuestionInfoResponse.class);
                     GameQuestionInfoResponse response = mapper.convertValue(questionInfoResponse, GameQuestionInfoResponse.class);
                     response.setRound(gameQuestion.getRound());
                     return response;
@@ -481,12 +497,193 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Page<QuestionResultsInfoResponse> getQuestionsResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+    public Page<RoundInfoResponse> getRoundInfo(Long id, Integer round, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Pageable pageable = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        Game game = getGameDb(id);
+        if (game.getStatus().equals(GameStatus.CANCELLED) ||
+                game.getStatus().equals(GameStatus.PLANNED) ||
+                game.getStatus().equals(GameStatus.CHANGED)) {
+            throw new CustomException("Игра еще не состоялась", HttpStatus.BAD_REQUEST);
+        }
+
+        GameQuestion gameQuestion = gameQuestionRepo.findByGameAndRound(game, round);
+        if (gameQuestion == null) {
+            throw new CustomException("Раунд игры не найден", HttpStatus.BAD_REQUEST);
+        }
+
+        List<RoundInfoResponse> roundInfoResponses = questionResultRepo.findAllByQuestion(gameQuestion, pageable)
+                .getContent()
+                .stream()
+                .map(questionResult -> {
+                    RoundInfoResponse response = new RoundInfoResponse();
+                    response.setGameId(game.getId());
+                    response.setRound(round);
+                    response.setQuestionId(questionResult.getQuestion().getQuestion().getId());
+                    response.setQuestion(questionResult.getQuestion().getQuestion().getQuestion());
+                    response.setTeamId(questionResult.getTeam().getId());
+                    response.setTeamName(questionResult.getTeam().getTeamName());
+                    response.setIsCorrect(questionResult.getIsCorrect());
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(roundInfoResponses);
+
+    }
+
+    @Override
+    public Page<RoundInfoResponse> setRoundResults(Long gameId, Integer round, Long teamId, RoundInfoRequest request, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Game game = getGameDb(gameId);
+        if (game.getStatus().equals(GameStatus.CANCELLED) ||
+                game.getStatus().equals(GameStatus.PLANNED) ||
+                game.getStatus().equals(GameStatus.CHANGED)) {
+            throw new CustomException("Игра еще не состоялась", HttpStatus.BAD_REQUEST);
+        }
+
+        GameQuestion gameQuestion = gameQuestionRepo.findByGameAndRound(game, round);
+        if (gameQuestion == null) {
+            throw new CustomException("Раунд игры не найден", HttpStatus.BAD_REQUEST);
+        }
+
+        Team team = teamService.getTeamDb(teamId);
+        GameParticipant gameParticipant = gameParticipantRepo.findByGameAndParticipant(game, team);
+        if (gameParticipant == null) {
+            throw new CustomException("Команда не является участником игры", HttpStatus.BAD_REQUEST);
+        }
+
+        QuestionResult questionResult = questionResultRepo.findByQuestionAndTeam(gameQuestion, team);
+        questionResult.setIsCorrect(request.getIsCorrect());
+        questionResult.setUpdatedAt(LocalDateTime.now());
+        questionResultRepo.save(questionResult);
+
+        Result gameResult = resultRepo.findByGameAndTeam(game, team);
+        gameResult.setPoints(request.getIsCorrect() ? gameResult.getPoints() + 1 : gameResult.getPoints());
+        gameResult = resultRepo.save(gameResult);
+
+        team.setPoints(request.getIsCorrect() ? team.getPoints() + 1 : team.getPoints());
+        team.setAnswers(team.getAnswers() + 1);
+        team.setCorrectAnswers(request.getIsCorrect() ? team.getCorrectAnswers() + 1 : team.getCorrectAnswers());
+        team.setCorrectAnswersPct((double) team.getCorrectAnswers() / (double) team.getAnswers() * 100);
+        team = teamRepo.save(team);
+
+        return getRoundInfo(gameId, round, page, perPage, sort, order);
+    }
+
+    @Override
+    public Page<RoundInfoResponse> getQuestionsResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Game game = getGameDb(id);
+        if (game.getStatus().equals(GameStatus.CANCELLED) ||
+                game.getStatus().equals(GameStatus.PLANNED) ||
+                game.getStatus().equals(GameStatus.CHANGED)) {
+            throw new CustomException("Игра еще не состоялась", HttpStatus.BAD_REQUEST);
+        }
+
+        Pageable pageable = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        List<RoundInfoResponse> roundInfoResponses = questionResultRepo.findAllByGameId(game.getId(), pageable)
+                .getContent()
+                .stream()
+                .map(questionResult -> {
+                    RoundInfoResponse response = new RoundInfoResponse();
+                    response.setGameId(game.getId());
+                    response.setRound(questionResult.getQuestion().getRound());
+                    response.setQuestionId(questionResult.getQuestion().getQuestion().getId());
+                    response.setQuestion(questionResult.getQuestion().getQuestion().getQuestion());
+                    response.setTeamId(questionResult.getTeam().getId());
+                    response.setTeamName(questionResult.getTeam().getTeamName());
+                    response.setIsCorrect(questionResult.getIsCorrect());
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(roundInfoResponses);
     }
 
     @Override
     public Page<GameResultInfoResponse> getResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+        Game game = getGameDb(id);
+        if (game.getStatus().equals(GameStatus.CANCELLED) ||
+                game.getStatus().equals(GameStatus.PLANNED) ||
+                game.getStatus().equals(GameStatus.CHANGED)) {
+            throw new CustomException("Игра еще не состоялась", HttpStatus.BAD_REQUEST);
+        }
+
+        Pageable pageable = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        AtomicInteger place = new AtomicInteger(1);
+
+        List<GameResultInfoResponse> all = resultRepo.findAllByGame(game, pageable)
+                .getContent()
+                .stream()
+                .sorted(Comparator.comparing(Result::getPoints).reversed())
+                .map(result -> {
+                    result.setPlace(place.incrementAndGet());
+                    result = resultRepo.save(result);
+                    GameResultInfoResponse response = new GameResultInfoResponse();
+                    response.setPlace(result.getPlace());
+                    response.setTeamId(result.getTeam().getId());
+                    response.setTeamName(result.getTeam().getTeamName());
+                    response.setPoints(result.getPoints());
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(all);
+    }
+
+    @Override
+    public Page<GameResultInfoResponse> countResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Game game = getGameDb(id);
+        if (game.getStatus().equals(GameStatus.FINISHED)) {
+            throw new CustomException("Результаты посчитаны ранее", HttpStatus.CONFLICT);
+        } else if (!game.getStatus().equals(GameStatus.ONGOING)) {
+            throw new CustomException("Игра не началась", HttpStatus.BAD_REQUEST);
+        }
+
+        boolean isNotFinished = questionResultRepo.findAllByGameId(game.getId())
+                .stream()
+                .anyMatch(questionResult -> questionResult.getIsCorrect() == null);
+        if (isNotFinished) {
+            throw new CustomException("Игра еще не завершена или внесены не все результаты", HttpStatus.CONFLICT);
+        }
+
+        game.setStatus(GameStatus.FINISHED);
+
+        Page<GameResultInfoResponse> gameResultInfoResponses = getResults(id, page, perPage, sort, order);
+
+        if (game.getStage().equals(Stage.FINAL)) {
+            tournamentService.countResults(game.getTournament().getId());
+        }
+
+        return gameResultInfoResponses;
+    }
+
+    @Override
+    public Page<GameQuestionInfoResponse> startGame(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
+        Game game = getGameDb(id);
+
+        if (game.getStatus().equals(GameStatus.CANCELLED)) {
+            throw new CustomException("Игра была отменена", HttpStatus.BAD_REQUEST);
+        }
+
+        List<GameParticipant> gameParticipants = gameParticipantRepo.findAllByGameAndStatus(game, ParticipantStatus.APPROVED);
+        List<GameQuestion> gameQuestions = gameQuestionRepo.findAllByGame(game);
+
+        for (int i = 0; i < gameParticipants.size(); i++) {
+            for (int j = 0; j < gameQuestions.size(); j++) {
+                QuestionResult questionResult = new QuestionResult();
+                questionResult.setQuestion(gameQuestions.get(j));
+                questionResult.setTeam(gameParticipants.get(i).getParticipant());
+                questionResult.setCreatedAt(LocalDateTime.now());
+                questionResultRepo.save(questionResult);
+            }
+            Result result = new Result();
+            result.setGame(game);
+            result.setTeam(gameParticipants.get(i).getParticipant());
+            resultRepo.save(result);
+        }
+
+        return getGameQuestions(id, page, perPage, sort, order);
     }
 }

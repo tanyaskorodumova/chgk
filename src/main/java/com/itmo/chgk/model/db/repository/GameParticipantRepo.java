@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface GameParticipantRepo  extends JpaRepository<GameParticipant, Long> {
 
     @Query(nativeQuery = true, value = "select * from game_participants p left join tournaments_games t on p.game_id = t.games_id " +
@@ -23,6 +25,7 @@ public interface GameParticipantRepo  extends JpaRepository<GameParticipant, Lon
     GameParticipant findByGameAndParticipant(Game game, Team participant);
 
     Page<GameParticipant> findAllByGameAndStatus(Game game, ParticipantStatus status, Pageable pageable);
+    List<GameParticipant> findAllByGameAndStatus(Game game, ParticipantStatus status);
 
     @Query(nativeQuery = true, value = "select * from game_participants " +
             "left join tournaments_games on game_participants.game_id = tournaments_games.games_id " +
@@ -33,4 +36,11 @@ public interface GameParticipantRepo  extends JpaRepository<GameParticipant, Lon
                                                             @Param("status") ParticipantStatus status,
                                                             @Param("tournament") Tournament tournament,
                                                             @Param("stage") Stage stage);
+
+    @Query("select GP from GameParticipant GP left join Game G on GP.game = G " +
+            "where G.tournament = :tournament and GP.participant = :participant and G.stage = :stage and GP.status <> :status")
+    GameParticipant findByTournamentAndParticipantAndStageAndStatus(@Param("tournament") Tournament tournament,
+                                                            @Param("participant") Team participant,
+                                                            @Param("stage") Stage stage,
+                                                            @Param("status") ParticipantStatus status);
 }

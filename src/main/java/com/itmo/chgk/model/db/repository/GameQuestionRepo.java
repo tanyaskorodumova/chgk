@@ -17,6 +17,7 @@ import java.util.List;
 public interface GameQuestionRepo extends JpaRepository<GameQuestion, Long> {
 
     Page<GameQuestion> findAllByGame(Game game, Pageable pageable);
+    List<GameQuestion> findAllByGame(Game game);
 
     @Query(value = "select gq from GameQuestion gq inner join Game g on g = gq.game where g.status <> :status and gq.question = :question")
     GameQuestion findByQuestionAndGameStatusIsNot(@Param("question") Question question, @Param("status") GameStatus status);
@@ -24,4 +25,7 @@ public interface GameQuestionRepo extends JpaRepository<GameQuestion, Long> {
     GameQuestion findByGameAndQuestion(Game game, Question question);
 
     List<GameQuestion> findAllByGameAndRoundAfter(Game game, Integer round);
+
+    GameQuestion findByGameAndRound(Game game, Integer round);
+
 }

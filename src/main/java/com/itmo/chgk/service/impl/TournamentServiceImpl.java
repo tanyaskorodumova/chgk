@@ -8,6 +8,7 @@ import com.itmo.chgk.model.dto.request.TournamentInfoRequest;
 import com.itmo.chgk.model.dto.response.*;
 import com.itmo.chgk.model.enums.GameStatus;
 import com.itmo.chgk.model.enums.ParticipantStatus;
+import com.itmo.chgk.model.enums.Stage;
 import com.itmo.chgk.model.enums.TournamentStatus;
 import com.itmo.chgk.service.TeamService;
 import com.itmo.chgk.service.TournamentService;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,6 +36,8 @@ public class TournamentServiceImpl implements TournamentService {
     private final TournamentRepo tournamentRepo;
     private final GameRepo gameRepo;
     private final GameParticipantRepo gameParticipantRepo;
+    private final ResultRepo resultRepo;
+    private final TeamRepo teamRepo;
     private final TournamentTableRepo tournamentTableRepo;
     private final TeamService teamService;
 
@@ -120,13 +124,6 @@ public class TournamentServiceImpl implements TournamentService {
                     game = gameRepo.save(game);
                     return game;
                 });
-        tournamentTableRepo.findAllByTournament(tournament)
-                .stream()
-                .map(tournamentT -> {
-                    tournamentT.setPoints(0);
-                    tournamentT = tournamentTableRepo.save(tournamentT);
-                    return tournamentT;
-                });
 
         tournament.setUpdatedAt(LocalDateTime.now());
 
@@ -166,6 +163,7 @@ public class TournamentServiceImpl implements TournamentService {
                     ParticipantStatus status = gameParticipant.getStatus();
                     ParticipantsInfoResponse response = mapper.convertValue(teamInfoResponse, ParticipantsInfoResponse.class);
                     response.setParticipantStatus(status);
+                    response.setGameId(gameParticipant.getGame().getId());
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -175,6 +173,78 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public Page<TournamentTableInfoResponse> getTournamentResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        return null;
+        Tournament tournament = getTournamentDb(id);
+
+        Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
+
+        List<TournamentTableInfoResponse> all = tournamentTableRepo.findAllByTournament(tournament, request)
+                .getContent()
+                .stream()
+                .map(tournamentTable -> {
+                    TournamentTableInfoResponse response = new TournamentTableInfoResponse();
+                    response.setTournament(mapper.convertValue(tournamentTable.getTournament(), TournamentInfoResponse.class));
+                    response.setTeamId(tournamentTable.getTeam().getId());
+                    response.setTeamName(tournamentTable.getTeam().getTeamName());
+                    response.setPoints(tournamentTable.getPoints());
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(all);
+    }
+
+    @Override
+    public void countResults(Long id) {
+        Tournament tournament = getTournamentDb(id);
+
+        List<TournamentTable> finalists = resultRepo.findAllByTournamentAndStage(tournament, Stage.FINAL)
+                .stream()
+                .map(result -> {
+                    TournamentTable tournamentTable = new TournamentTable();
+                    tournamentTable.setTournament(tournament);
+                    Integer points = result.getPlace() == 1 ? 100 : 100 - 5 * result.getPlace();
+                    tournamentTable.setPoints(points);
+                    Team team = result.getTeam();
+                    team.setPoints(points * tournament.getTournFactor());
+                    team = teamRepo.save(team);
+                    tournamentTable.setTeam(team);
+                    return tournamentTableRepo.save(tournamentTable);
+                })
+                .collect(Collectors.toList());
+
+        AtomicReference<Integer> semiPoints = new AtomicReference<>(44);
+        List<TournamentTable> semiFinalists = resultRepo.findAllByTournamentAndStage(tournament, Stage.SEMIFINAL)
+                .stream()
+                .filter(result -> result.getPlace() >= 6)
+                .map(result -> {
+                    TournamentTable tournamentTable = new TournamentTable();
+                    tournamentTable.setTournament(tournament);
+                    Integer points = semiPoints.get();
+                    tournamentTable.setPoints(points);
+                    Team team = result.getTeam();
+                    team.setPoints(points * tournament.getTournFactor());
+                    tournamentTable.setTeam(teamRepo.save(team));
+                    semiPoints.updateAndGet(v -> v - 2);
+                    return  tournamentTableRepo.save(tournamentTable);
+                })
+                .collect(Collectors.toList());
+
+        AtomicReference<Integer> quarterPoints = new AtomicReference<>(20);
+        List<TournamentTable> quarterFinalists = resultRepo.findAllByTournamentAndStage(tournament, Stage.QUARTERFINAL)
+                .stream()
+                .filter(result -> result.getPlace() >= 6)
+                .map(result -> {
+                    TournamentTable tournamentTable = new TournamentTable();
+                    tournamentTable.setTournament(tournament);
+                    Integer points = semiPoints.get();
+                    tournamentTable.setPoints(points);
+                    Team team = result.getTeam();
+                    team.setPoints(points * tournament.getTournFactor());
+                    tournamentTable.setTeam(teamRepo.save(team));
+                    semiPoints.updateAndGet(v -> v - 1);
+                    return  tournamentTableRepo.save(tournamentTable);
+                })
+                .collect(Collectors.toList());
+
     }
 }
