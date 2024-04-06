@@ -33,13 +33,9 @@ public class QuestionController {
         return questionService.getQuestion(id);
     }
 
-    @GetMapping("/training/package")
-    public Page<QuestionInfoResponse> getQuestionPack(@RequestBody QuestionPackRequest request,
-                                                      @RequestParam(defaultValue = "1") Integer page,
-                                                      @RequestParam(defaultValue = "10") Integer perPage,
-                                                      @RequestParam(defaultValue = "id") String sort,
-                                                      @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return questionService.getQuestionPack(request, page, perPage, sort, order);
+    @PutMapping ("/training/package")
+    public List<QuestionInfoResponse> getQuestionPack(@RequestBody QuestionPackRequest request) {
+        return questionService.getQuestionPack(request);
     }
 
     @GetMapping("/{id}/answer")
@@ -50,6 +46,15 @@ public class QuestionController {
     @PostMapping("/new")
     public QuestionInfoResponse createQuestion(@RequestBody QuestionInfoRequest request) {
         return questionService.createQuestion(request);
+
+//        for (int i = 25001; i <= 30000; i++) {
+//            request.setQuestion("Question" + i);
+//            request.setAnswer("Answer" + i);
+//            request.setSource(Math.random() > 0.25 ? "Source" : null);
+//            request.setComplexity(QuestionComplexity.values()[(int) (Math.random() * 5)]);
+//            questionService.createQuestion(request);
+//        }
+//        return null;
     }
 
     @PutMapping("/{id}")
@@ -61,7 +66,7 @@ public class QuestionController {
     public Page<QuestionInfoResponse> getQuestionsToApprove(@RequestParam(defaultValue = "1") Integer page,
                                                             @RequestParam(defaultValue = "10") Integer perPage,
                                                             @RequestParam(defaultValue = "id") String sort,
-                                                            @RequestParam(defaultValue = "ASC") Sort.Direction order) {
+                                                            @RequestParam(defaultValue = "random") Sort.Direction order) {
         return questionService.getQuestionsToApprove(page, perPage, sort, order);
     }
 
@@ -70,6 +75,18 @@ public class QuestionController {
                                                 @RequestBody QuestionInfoRequest request,
                                                 @RequestParam QuestionStatus status) {
         return questionService.approveQuestion(id, request, status);
+
+//        for (int i = 1; i <= 15000; i++) {
+//            if (Math.random() > 0.6) {
+//                status = QuestionStatus.REJECTED;
+//            }
+//            else {
+//                status = QuestionStatus.APPROVED;
+//            }
+//            questionService.approveQuestion((long) i, request, status);
+//        }
+//
+//        return null;
     }
 
     @DeleteMapping("/{id}")

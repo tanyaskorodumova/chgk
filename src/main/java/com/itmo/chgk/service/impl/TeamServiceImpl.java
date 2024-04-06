@@ -48,7 +48,9 @@ public class TeamServiceImpl implements TeamService {
                     UserInfoResponse captain = mapper.convertValue(team.getCaptain(), UserInfoResponse.class);
                     captain.setPassword("Скрыто");
                     UserInfoResponse viceCaptain = mapper.convertValue(team.getViceCaptain(), UserInfoResponse.class);
-                    viceCaptain.setPassword("Скрыто");
+                    if (viceCaptain != null) {
+                        viceCaptain.setPassword("Скрыто");
+                    }
                     response.setCaptain(captain);
                     response.setViceCaptain(viceCaptain);
                     return response;
@@ -95,7 +97,7 @@ public class TeamServiceImpl implements TeamService {
         team.setCaptain(captain);
 
         if (request.getViceCaptainId() != null) {
-            User viceCaptain = userService.getUserDb(request.getCaptainId());
+            User viceCaptain = userService.getUserDb(request.getViceCaptainId());
             team.setViceCaptain(viceCaptain);
         }
 
@@ -145,7 +147,9 @@ public class TeamServiceImpl implements TeamService {
 
         List<User> members = team.getUsers();
         members.add(user);
+        user.setTeam(team);
         team = teamRepo.save(team);
+        userRepo.save(user);
 
         return getMembers(teamId, page, perPage, sort, order);
     }
@@ -167,7 +171,7 @@ public class TeamServiceImpl implements TeamService {
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
         Team team = getTeamDb(id);
 
-        List<UserInfoResponse> allUsers = userRepo.findAllByTeamId(id, request)
+        List<UserInfoResponse> allUsers = userRepo.findAllByTeam(team.getId(), request)
                 .getContent()
                 .stream()
                 .map(u -> userService.getUser(u.getId()))

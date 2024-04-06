@@ -2,18 +2,13 @@ package com.itmo.chgk.model.db.repository;
 
 
 import com.itmo.chgk.model.db.entity.Question;
-import com.itmo.chgk.model.dto.request.QuestionPackRequest;
-import com.itmo.chgk.model.enums.GameStatus;
-import com.itmo.chgk.model.enums.QuestionComplexity;
 import com.itmo.chgk.model.enums.QuestionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface QuestionRepo  extends JpaRepository<Question, Long> {
@@ -23,10 +18,9 @@ public interface QuestionRepo  extends JpaRepository<Question, Long> {
             "left join games on game_questions.game_id = games.id " +
             "where complexity >= :minComplexity and complexity <= :maxComplexity and questions.status = 2 " +
             "and games.status in (2, 3) order by random() limit :number")
-    Page<Question> findByQuestionPackRequest(@Param("minComplexity") Integer minComplexity,
+    List<Question> findByQuestionPackRequest(@Param("minComplexity") Integer minComplexity,
                                              @Param("maxComplexity") Integer maxComplexity,
-                                             @Param("number") Integer number,
-                                             Pageable pageable);
+                                             @Param("number") Integer number);
 
     @Query(value = "select * from questions where (status = 0 and created_At > (current_date-31)) or (status = 1 and updated_At > (current_date-31))",
             nativeQuery = true)

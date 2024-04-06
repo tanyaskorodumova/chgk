@@ -63,14 +63,11 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public Page<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        Pageable pageable = PaginationUtil.getPageRequest(page, perPage, sort, order);
+    public List<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request) {
 
         List<QuestionInfoResponse> questions = questionRepo.findByQuestionPackRequest(request.getMinComplexity() == null? 0 : request.getMinComplexity().ordinal(),
                 request.getMaxComplexity() == null ? 5 : request.getMaxComplexity().ordinal(),
-                request.getNumber() == null ? 10 : request.getNumber(),
-                pageable)
-                .getContent()
+                request.getNumber() == null ? 10 : request.getNumber())
                 .stream()
                 .map(question -> {
                     QuestionInfoResponse questionInfoResponse = mapper.convertValue(question, QuestionInfoResponse.class);
@@ -80,7 +77,7 @@ public class QuestionServiceImpl implements QuestionService {
                 })
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(questions);
+        return questions;
     }
 
     @Override
@@ -91,6 +88,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionInfoResponse createQuestion(QuestionInfoRequest request) {
+
         if (request.getQuestion().isEmpty()) {
             throw new CustomException("Поле вопрос не может быть пустым", HttpStatus.BAD_REQUEST);
         }
@@ -105,6 +103,7 @@ public class QuestionServiceImpl implements QuestionService {
         question = questionRepo.save(question);
 
         return mapper.convertValue(question, QuestionInfoResponse.class);
+
     }
 
     @Override
@@ -139,6 +138,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionInfoResponse approveQuestion(Long id, QuestionInfoRequest request, QuestionStatus status) {
+
         Question question = getQuestionDb(id);
 
         if (question.getComplexity() == null && request.getComplexity() == null && status.equals(QuestionStatus.APPROVED)) {
@@ -155,6 +155,7 @@ public class QuestionServiceImpl implements QuestionService {
         question = questionRepo.save(question);
 
         return mapper.convertValue(question, QuestionInfoResponse.class);
+
     }
 
     @Override

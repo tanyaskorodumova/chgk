@@ -128,6 +128,7 @@ public class GameServiceImpl implements GameService {
         game.setStatus(GameStatus.PLANNED);
         game.setCreatedAt(LocalDateTime.now());
 
+        tournament.getGames().add(game);
         tournament.setStatus(tournament.getStatus().equals(TournamentStatus.PLANNED) ? TournamentStatus.REGISTRATION : tournament.getStatus());
         tournament = tournamentRepo.save(tournament);
 

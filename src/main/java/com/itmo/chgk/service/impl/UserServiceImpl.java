@@ -104,6 +104,7 @@ public class UserServiceImpl implements UserService {
         response.setBirthDay(user.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
         return response;
+
     }
 
     @Override

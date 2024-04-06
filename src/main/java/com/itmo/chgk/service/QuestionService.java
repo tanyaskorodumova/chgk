@@ -8,13 +8,15 @@ import com.itmo.chgk.model.enums.QuestionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
+
 public interface QuestionService {
 
     Page<QuestionInfoResponse> getAllQuestions(Integer page, Integer perPage, String sort, Sort.Direction order);
 
     QuestionInfoResponse getQuestion(Long id);
 
-    Page<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order);
+    List<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request);
 
     QuestionInfoResponse getAnswer(Long id);
 
