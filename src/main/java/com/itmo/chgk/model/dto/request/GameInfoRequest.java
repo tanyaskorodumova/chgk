@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 public class GameInfoRequest {
     String gameName;
 
-    @Future
+    @Future(message = "Дата проведения игры должна быть будущей")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonFormat(pattern = "dd.MM.yyyy HH:mm")

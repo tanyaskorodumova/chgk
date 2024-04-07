@@ -8,10 +8,10 @@ import com.itmo.chgk.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/games")
@@ -61,7 +61,7 @@ public class GameController {
     public Page<ParticipantsInfoResponse> approveParticipant(@PathVariable Long gameId, @PathVariable Long teamId,
                                                      @RequestParam(defaultValue = "1") Integer page,
                                                      @RequestParam(defaultValue = "10") Integer perPage,
-                                                     @RequestParam(defaultValue = "points") String sort,
+                                                     @RequestParam(defaultValue = "id") String sort,
                                                      @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return gameService.approveParticipant(gameId, teamId, page, perPage, sort, order);
     }
@@ -70,7 +70,7 @@ public class GameController {
     public Page<ParticipantsInfoResponse> deleteParticipant(@PathVariable Long gameId, @PathVariable Long teamId,
                                                      @RequestParam(defaultValue = "1") Integer page,
                                                      @RequestParam(defaultValue = "10") Integer perPage,
-                                                     @RequestParam(defaultValue = "points") String sort,
+                                                     @RequestParam(defaultValue = "id") String sort,
                                                      @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return gameService.deleteParticipant(gameId, teamId, page, perPage, sort, order);
     }
@@ -79,7 +79,7 @@ public class GameController {
     public Page<ParticipantsInfoResponse> getAllParticipants(@PathVariable Long id,
                                                      @RequestParam(defaultValue = "1") Integer page,
                                                      @RequestParam(defaultValue = "10") Integer perPage,
-                                                     @RequestParam(defaultValue = "points") String sort,
+                                                     @RequestParam(defaultValue = "id") String sort,
                                                      @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return gameService.getAllParticipants(id, page, perPage, sort, order);
     }
@@ -88,7 +88,7 @@ public class GameController {
     public Page<ParticipantsInfoResponse> getParticipants(@PathVariable Long id,
                                                   @RequestParam(defaultValue = "1") Integer page,
                                                   @RequestParam(defaultValue = "10") Integer perPage,
-                                                  @RequestParam(defaultValue = "points") String sort,
+                                                  @RequestParam(defaultValue = "id") String sort,
                                                   @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return gameService.getParticipants(id, page, perPage, sort, order);
     }
@@ -103,12 +103,8 @@ public class GameController {
     }
 
     @PostMapping("/{id}/questions/setPack")
-    public Page<GameQuestionInfoResponse> setGameQuestions(@PathVariable Long id, @RequestBody QuestionPackRequest request,
-                                                       @RequestParam(defaultValue = "1") Integer page,
-                                                       @RequestParam(defaultValue = "10") Integer perPage,
-                                                       @RequestParam(defaultValue = "round") String sort,
-                                                       @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return gameService.setGameQuestions(id, request, page, perPage, sort, order);
+    public List<GameQuestionInfoResponse> setGameQuestions(@PathVariable Long id, @RequestBody QuestionPackRequest request) {
+        return gameService.setGameQuestions(id, request);
     }
 
     @PostMapping("/{gameId}/questions/set/{round}/{questionId}")
@@ -143,7 +139,7 @@ public class GameController {
                                             @PathVariable Long teamId, @RequestBody RoundInfoRequest request,
                                             @RequestParam(defaultValue = "1") Integer page,
                                             @RequestParam(defaultValue = "10") Integer perPage,
-                                            @RequestParam(defaultValue = "teamId") String sort,
+                                            @RequestParam(defaultValue = "id") String sort,
                                             @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return gameService.setRoundResults(gameId, round, teamId, request, page, perPage, sort, order);
     }
@@ -153,7 +149,7 @@ public class GameController {
     public Page<RoundInfoResponse> getQuestionsResults(@PathVariable Long id,
                                                        @RequestParam(defaultValue = "1") Integer page,
                                                        @RequestParam(defaultValue = "10") Integer perPage,
-                                                       @RequestParam(defaultValue = "round") String sort,
+                                                       @RequestParam(defaultValue = "id") String sort,
                                                        @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return gameService.getQuestionsResults(id, page, perPage, sort, order);
     }

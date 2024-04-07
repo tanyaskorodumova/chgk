@@ -127,12 +127,11 @@ public class GameServiceImpl implements GameService {
         game.setVacant(game.getMaxParticipants());
         game.setStatus(GameStatus.PLANNED);
         game.setCreatedAt(LocalDateTime.now());
+        game = gameRepo.save(game);
 
         tournament.getGames().add(game);
         tournament.setStatus(tournament.getStatus().equals(TournamentStatus.PLANNED) ? TournamentStatus.REGISTRATION : tournament.getStatus());
         tournament = tournamentRepo.save(tournament);
-
-        game = gameRepo.save(game);
 
         GameInfoResponse response = mapper.convertValue(game, GameInfoResponse.class);
         response.setTournament(mapper.convertValue(tournament, TournamentInfoResponse.class));
@@ -205,7 +204,7 @@ public class GameServiceImpl implements GameService {
 
         game.setStatus(GameStatus.CANCELLED);
         game.setUpdatedAt(LocalDateTime.now());
-        game = gameRepo.save(game);
+        gameRepo.save(game);
     }
 
     @Override
@@ -220,7 +219,8 @@ public class GameServiceImpl implements GameService {
             throw new CustomException("Игра уже началась", HttpStatus.BAD_REQUEST);
         }
 
-        if (game.getTournament().getMinPoints() > team.getPoints()) {
+        if ((team.getPoints() == null && game.getTournament().getMinPoints() != null && game.getTournament().getMinPoints() != 0) ||
+                (team.getPoints() != null && game.getTournament().getMinPoints() != null && game.getTournament().getMinPoints() > team.getPoints())) {
             throw new CustomException("Недостаточно баллов для регистрации на турнир", HttpStatus.BAD_REQUEST);
         }
 
@@ -250,12 +250,12 @@ public class GameServiceImpl implements GameService {
         gameParticipant.setParticipant(team);
         gameParticipant.setGame(game);
         gameParticipant.setStatus(ParticipantStatus.REGISTERED);
-        gameParticipant = gameParticipantRepo.save(gameParticipant);
+        gameParticipantRepo.save(gameParticipant);
 
         game.setVacant(game.getVacant() - 1);
         game = gameRepo.save(game);
 
-        return getAllParticipants(gameId, page, perPage, sort, order);
+        return getAllParticipants(game.getId(), page, perPage, sort, order);
 
     }
 
@@ -271,8 +271,8 @@ public class GameServiceImpl implements GameService {
             throw new CustomException("Участие подтверждено ранее", HttpStatus.BAD_REQUEST);
         }
 
-        GameParticipant check = gameParticipantRepo.findByParticipantAndStatusIsNotAndTournament(participant,
-                ParticipantStatus.REJECTED, game.getTournament(), game.getStage());
+        GameParticipant check = gameParticipantRepo.findByParticipantAndStatusIsNotAndTournamentAndGameIsNot(participant.getId(),
+                ParticipantStatus.REJECTED.ordinal(), game.getTournament().getId(), game.getStage().ordinal(), game.getId());
         if (check != null) {
             throw new CustomException("Команда уже зарегистрирована на другую игру данного этапа", HttpStatus.BAD_REQUEST);
         }
@@ -376,9 +376,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Page<GameQuestionInfoResponse> setGameQuestions(Long id, QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        Pageable pageable = PaginationUtil.getPageRequest(page, perPage, sort, order);
-
+    public List<GameQuestionInfoResponse> setGameQuestions(Long id, QuestionPackRequest request) {
         List<GameQuestionInfoResponse> finalResponse = null;
 
         Game game = getGameDb(id);
@@ -393,13 +391,12 @@ public class GameServiceImpl implements GameService {
         AtomicInteger round = new AtomicInteger(0);
 
         if (!game.getTournament().getLevel().equals(TournamentLevel.FEDERAL)) {
-            finalResponse = questionRepo.findGamePack(pageable,
-                            game.getId(),
+            finalResponse = questionRepo.findGamePack(game.getId(),
                             request.getMinComplexity() == null ? 0 : request.getMinComplexity().ordinal(),
                             request.getMaxComplexity() == null ? 5 : request.getMaxComplexity().ordinal(),
                             request.getNumber() == null ? 10 : request.getNumber())
-                    .getContent()
                     .stream()
+                    .sorted(Comparator.comparing(Question::getComplexity))
                     .map(question -> {
                         GameQuestion gameQuestion = new GameQuestion();
                         gameQuestion.setGame(game);
@@ -414,12 +411,11 @@ public class GameServiceImpl implements GameService {
                     .collect(Collectors.toList());
         }
         else {
-            finalResponse = questionRepo.findFedGamePack(pageable,
-                            request.getMinComplexity() == null ? 0 : request.getMinComplexity().ordinal(),
+            finalResponse = questionRepo.findFedGamePack(request.getMinComplexity() == null ? 0 : request.getMinComplexity().ordinal(),
                             request.getMaxComplexity() == null ? 5 : request.getMaxComplexity().ordinal(),
                             request.getNumber() == null ? 10 : request.getNumber())
-                    .getContent()
                     .stream()
+                    .sorted(Comparator.comparing(Question::getComplexity))
                     .map(question -> {
                         GameQuestion gameQuestion = new GameQuestion();
                         gameQuestion.setGame(game);
@@ -434,7 +430,7 @@ public class GameServiceImpl implements GameService {
                     .collect(Collectors.toList());
         }
 
-        return new PageImpl<>(finalResponse);
+        return finalResponse;
     }
 
     @Override
@@ -461,9 +457,9 @@ public class GameServiceImpl implements GameService {
         gameQuestion.setGame(game);
         gameQuestion.setQuestion(question);
         gameQuestion.setRound(round);
-        gameQuestion = gameQuestionRepo.save(gameQuestion);
+        gameQuestionRepo.save(gameQuestion);
 
-        return getGameQuestions(gameId, page, perPage, sort, order);
+        return getGameQuestions(game.getId(), page, perPage, sort, order);
     }
 
     @Override
@@ -488,10 +484,9 @@ public class GameServiceImpl implements GameService {
 
         gameQuestionRepo.findAllByGameAndRoundAfter(game, round)
                 .stream()
-                .map(gq -> {
+                .forEach(gq -> {
                     gq.setRound(gq.getRound()-1);
-                    gq = gameQuestionRepo.save(gq);
-                    return gq;
+                    gameQuestionRepo.save(gq);
                 });
 
         return getGameQuestions(gameId, page, perPage, sort, order);
@@ -553,19 +548,24 @@ public class GameServiceImpl implements GameService {
             throw new CustomException("Команда не является участником игры", HttpStatus.BAD_REQUEST);
         }
 
-        QuestionResult questionResult = questionResultRepo.findByQuestionAndTeam(gameQuestion, team);
+        QuestionResult questionResult = questionResultRepo.findByQuestionAndTeam(gameQuestion.getId(), team.getId());
         questionResult.setIsCorrect(request.getIsCorrect());
         questionResult.setUpdatedAt(LocalDateTime.now());
         questionResultRepo.save(questionResult);
 
         Result gameResult = resultRepo.findByGameAndTeam(game, team);
-        gameResult.setPoints(request.getIsCorrect() ? gameResult.getPoints() + 1 : gameResult.getPoints());
+        gameResult.setPoints(request.getIsCorrect() ?
+                (gameResult.getPoints() == null ? 1 : gameResult.getPoints() + 1)
+                : (gameResult.getPoints() == null ? 0 : gameResult.getPoints()));
         gameResult = resultRepo.save(gameResult);
 
-        team.setPoints(request.getIsCorrect() ? team.getPoints() + 1 : team.getPoints());
-        team.setAnswers(team.getAnswers() + 1);
-        team.setCorrectAnswers(request.getIsCorrect() ? team.getCorrectAnswers() + 1 : team.getCorrectAnswers());
-        team.setCorrectAnswersPct((double) team.getCorrectAnswers() / (double) team.getAnswers() * 100);
+        //team.setPoints(request.getIsCorrect() ? (team.getPoints() == null ? 1 : team.getPoints() + 1) : team.getPoints());
+        team.setAnswers(team.getAnswers() == null ? 1 : team.getAnswers() + 1);
+        team.setCorrectAnswers(request.getIsCorrect() ?
+                (team.getCorrectAnswers() == null ? 1 : team.getCorrectAnswers() + 1)
+                : (team.getCorrectAnswers() == null ? 0 : team.getCorrectAnswers()));
+        team.setCorrectAnswersPct(team.getCorrectAnswers() == null ? 0
+                : (double) team.getCorrectAnswers() / (double) team.getAnswers() * 100);
         team = teamRepo.save(team);
 
         return getRoundInfo(gameId, round, page, perPage, sort, order);
@@ -612,7 +612,7 @@ public class GameServiceImpl implements GameService {
 
         Pageable pageable = PaginationUtil.getPageRequest(page, perPage, sort, order);
 
-        AtomicInteger place = new AtomicInteger(1);
+        AtomicInteger place = new AtomicInteger(0);
 
         List<GameResultInfoResponse> all = resultRepo.findAllByGame(game, pageable)
                 .getContent()
@@ -668,6 +668,9 @@ public class GameServiceImpl implements GameService {
             throw new CustomException("Игра была отменена", HttpStatus.BAD_REQUEST);
         }
 
+        game.setStatus(GameStatus.ONGOING);
+        game = gameRepo.save(game);
+
         List<GameParticipant> gameParticipants = gameParticipantRepo.findAllByGameAndStatus(game, ParticipantStatus.APPROVED);
         List<GameQuestion> gameQuestions = gameQuestionRepo.findAllByGame(game);
 
@@ -682,8 +685,11 @@ public class GameServiceImpl implements GameService {
             Result result = new Result();
             result.setGame(game);
             result.setTeam(gameParticipants.get(i).getParticipant());
+            result.setPoints(0);
+            result.setPlace(0);
             resultRepo.save(result);
         }
+
 
         return getGameQuestions(id, page, perPage, sort, order);
     }

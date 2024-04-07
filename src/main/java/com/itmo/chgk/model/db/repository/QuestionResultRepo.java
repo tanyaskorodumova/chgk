@@ -14,13 +14,12 @@ import java.util.List;
 public interface QuestionResultRepo extends JpaRepository<QuestionResult, Long> {
     Page<QuestionResult> findAllByQuestion(GameQuestion question, Pageable pageable);
 
-    QuestionResult findByQuestionAndTeam(GameQuestion question, Team team);
+    @Query(nativeQuery = true, value = "select * from question_results qr where qr.question_id = :questionId and qr.team_id = :teamId")
+    QuestionResult findByQuestionAndTeam(@Param("questionId") Long questionId, @Param("teamId") Long teamId);
 
-    @Query(nativeQuery = true, value = "select * from question_results left join game_questions gq on gq.id = question_results.question_id " +
-            "where gq.game_id = :gameId")
+    @Query("select qr from QuestionResult qr where qr.question.game.id = :gameId")
     Page<QuestionResult> findAllByGameId(@Param("gameId") Long gameId, Pageable pageable);
 
-    @Query(nativeQuery = true, value = "select * from question_results left join game_questions gq on gq.id = question_results.question_id " +
-            "where gq.game_id = :gameId")
+    @Query("select qr from QuestionResult qr where qr.question.game.id = :gameId")
     List<QuestionResult> findAllByGameId(@Param("gameId") Long gameId);
 }

@@ -30,15 +30,16 @@ public interface GameParticipantRepo  extends JpaRepository<GameParticipant, Lon
     @Query(nativeQuery = true, value = "select * from game_participants " +
             "left join tournaments_games on game_participants.game_id = tournaments_games.games_id " +
             "left join games g on game_participants.game_id = g.id " +
-            "where participant_id = :participant and game_participants.status <> :status " +
-            "and tournaments_games.tournament_id = :tournament and stage = :stage")
-    GameParticipant findByParticipantAndStatusIsNotAndTournament(@Param("participant") Team participant,
-                                                            @Param("status") ParticipantStatus status,
-                                                            @Param("tournament") Tournament tournament,
-                                                            @Param("stage") Stage stage);
+            "where participant_id = :participantId and game_participants.status <> :status " +
+            "and tournaments_games.tournament_id = :tournamentId and stage = :stage and game_id <> :gameId")
+    GameParticipant findByParticipantAndStatusIsNotAndTournamentAndGameIsNot(@Param("participantId") Long participantId,
+                                                            @Param("status") Integer status,
+                                                            @Param("tournamentId") Long tournamentId,
+                                                            @Param("stage") Integer stage,
+                                                            @Param("gameId") Long gameId);
 
-    @Query("select GP from GameParticipant GP left join Game G on GP.game = G " +
-            "where G.tournament = :tournament and GP.participant = :participant and G.stage = :stage and GP.status <> :status")
+    @Query("select GP from GameParticipant GP where GP.game.tournament = :tournament " +
+            "and GP.participant = :participant and GP.game.stage = :stage and GP.status = :status")
     GameParticipant findByTournamentAndParticipantAndStageAndStatus(@Param("tournament") Tournament tournament,
                                                             @Param("participant") Team participant,
                                                             @Param("stage") Stage stage,

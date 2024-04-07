@@ -33,12 +33,6 @@ public class UserController {
     @PostMapping("/new")
     public UserInfoResponse createUser(@RequestBody @Valid UserInfoRequest request) {
         return userService.createUser(request);
-//        for (int i = 1; i <= 11000; i++) {
-//            request.setEmail("email" + i + "@mail.com");
-//            request.setLogin("login" + i);
-//            userService.createUser(request);
-//        }
-//        return null;
     }
 
     @PutMapping("/{id}")

@@ -24,7 +24,8 @@ public interface GameQuestionRepo extends JpaRepository<GameQuestion, Long> {
 
     GameQuestion findByGameAndQuestion(Game game, Question question);
 
-    List<GameQuestion> findAllByGameAndRoundAfter(Game game, Integer round);
+    @Query("select gq from GameQuestion gq where gq.game = :game and gq.round > :round")
+    List<GameQuestion> findAllByGameAndRoundAfter(@Param("game") Game game, @Param("round") Integer round);
 
     GameQuestion findByGameAndRound(Game game, Integer round);
 

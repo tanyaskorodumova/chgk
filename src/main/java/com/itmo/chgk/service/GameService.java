@@ -7,6 +7,8 @@ import com.itmo.chgk.model.dto.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
+
 public interface GameService {
     Page<GameInfoResponse> getAllGames(Integer page, Integer perPage, String sort, Sort.Direction order);
 
@@ -30,7 +32,7 @@ public interface GameService {
 
     Page<GameQuestionInfoResponse> getGameQuestions(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
-    Page<GameQuestionInfoResponse> setGameQuestions(Long id, QuestionPackRequest request, Integer page, Integer perPage, String sort, Sort.Direction order);
+    List<GameQuestionInfoResponse> setGameQuestions(Long id, QuestionPackRequest request);
 
     Page<GameQuestionInfoResponse> setGameQuestion(Long gameId, Long questionId, Integer round, Integer page, Integer perPage, String sort, Sort.Direction order);
 

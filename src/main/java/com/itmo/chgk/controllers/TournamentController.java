@@ -1,9 +1,7 @@
 package com.itmo.chgk.controllers;
 
-import com.itmo.chgk.model.dto.request.TeamInfoRequest;
 import com.itmo.chgk.model.dto.request.TournamentInfoRequest;
 import com.itmo.chgk.model.dto.response.*;
-import com.itmo.chgk.model.enums.TournamentLevel;
 import com.itmo.chgk.service.TournamentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,20 +33,6 @@ public class TournamentController {
     @PostMapping("/new")
     public TournamentInfoResponse createTournament(@RequestBody @Valid TournamentInfoRequest request) {
         return tournamentService.createTournament(request);
-
-//        for (int i = 1; i <= 15; i++) {
-//            request.setTournName("Tournament" + i);
-//            request.setMinPoints((int) (Math.random() * 2));
-//            request.setLevel(TournamentLevel.values()[(int) (Math.random() * 3)]);
-//            if (request.getLevel().equals(TournamentLevel.FEDERAL)) {
-//                request.setTournFactor((int) (Math.random()*4 + 7));
-//            }else {
-//                request.setTournFactor((int) (Math.random() * 6 + 1));
-//            }
-//            tournamentService.createTournament(request);
-//        }
-//
-//        return null;
     }
 
     @PutMapping("/{id}")
@@ -74,7 +58,7 @@ public class TournamentController {
     public Page<ParticipantsInfoResponse> getTournamentParticipants(@PathVariable Long id,
                                                                     @RequestParam(defaultValue = "1") Integer page,
                                                                     @RequestParam(defaultValue = "10") Integer perPage,
-                                                                    @RequestParam(defaultValue = "points") String sort,
+                                                                    @RequestParam(defaultValue = "id") String sort,
                                                                     @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return tournamentService.getTournamentParticipants(id, page, perPage, sort, order);
     }

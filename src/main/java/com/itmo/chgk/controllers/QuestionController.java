@@ -46,15 +46,6 @@ public class QuestionController {
     @PostMapping("/new")
     public QuestionInfoResponse createQuestion(@RequestBody QuestionInfoRequest request) {
         return questionService.createQuestion(request);
-
-//        for (int i = 25001; i <= 30000; i++) {
-//            request.setQuestion("Question" + i);
-//            request.setAnswer("Answer" + i);
-//            request.setSource(Math.random() > 0.25 ? "Source" : null);
-//            request.setComplexity(QuestionComplexity.values()[(int) (Math.random() * 5)]);
-//            questionService.createQuestion(request);
-//        }
-//        return null;
     }
 
     @PutMapping("/{id}")
@@ -75,18 +66,6 @@ public class QuestionController {
                                                 @RequestBody QuestionInfoRequest request,
                                                 @RequestParam QuestionStatus status) {
         return questionService.approveQuestion(id, request, status);
-
-//        for (int i = 1; i <= 15000; i++) {
-//            if (Math.random() > 0.6) {
-//                status = QuestionStatus.REJECTED;
-//            }
-//            else {
-//                status = QuestionStatus.APPROVED;
-//            }
-//            questionService.approveQuestion((long) i, request, status);
-//        }
-//
-//        return null;
     }
 
     @DeleteMapping("/{id}")

@@ -1,6 +1,5 @@
 package com.itmo.chgk.controllers;
 
-import com.itmo.chgk.model.db.repository.UserRepo;
 import com.itmo.chgk.model.dto.request.TeamInfoRequest;
 import com.itmo.chgk.model.dto.response.TeamInfoResponse;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
@@ -35,14 +34,6 @@ public class TeamController {
     @PostMapping("/new")
     public TeamInfoResponse createTeam(@RequestBody TeamInfoRequest request) {
         return teamService.createTeam(request);
-//
-//        for (int i = 1; i <= 500; i++) {
-//            request.setTeamName("Team" + i);
-//            request.setCaptainId((long) (Math.random() * 4000 + 1));
-//            request.setViceCaptainId(Math.random() > 0.25 ? (long) (Math.random() * 3000 + 4001) : null);
-//            teamService.createTeam(request);
-//        }
-//        return null;
     }
 
     @PutMapping("/{id}")
@@ -58,23 +49,9 @@ public class TeamController {
     @PostMapping("/{teamId}/setMember/{userId}")
     public Page<UserInfoResponse> setMember(@PathVariable Long teamId, @PathVariable Long userId,
                                             @RequestParam(defaultValue = "1") Integer page,
-                                            @RequestParam(defaultValue = "10") Integer perPage)//,
-                                            //@RequestParam(defaultValue = "login") String sort,
-                                            //@RequestParam(defaultValue = "ASC") Sort.Direction order)
+                                            @RequestParam(defaultValue = "10") Integer perPage)
     {
         return teamService.setMember(teamId, userId, page, perPage, null, null);
-
-//        userId = 2L;
-//        for (int i = 1; i < 500; i++) {
-//            teamId = (long) i;
-//            int maxMembs = (int) (Math.random() * 13 + 1);
-//            for (int j = 0; j < maxMembs; j++) {
-//                teamService.setMember(teamId, ++userId, page, perPage, sort, order);
-//                //userId++;
-//            }
-//        }
-//
-//        return null;
     }
 
     @DeleteMapping("/{teamId}/deleteMember/{userId}")

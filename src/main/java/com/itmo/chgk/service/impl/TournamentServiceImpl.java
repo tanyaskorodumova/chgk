@@ -205,7 +205,8 @@ public class TournamentServiceImpl implements TournamentService {
                     Integer points = result.getPlace() == 1 ? 100 : 100 - 5 * result.getPlace();
                     tournamentTable.setPoints(points);
                     Team team = result.getTeam();
-                    team.setPoints(points * tournament.getTournFactor());
+                    team.setPoints(team.getPoints() == null ? points * tournament.getTournFactor()
+                            : team.getPoints() + points * tournament.getTournFactor());
                     team = teamRepo.save(team);
                     tournamentTable.setTeam(team);
                     return tournamentTableRepo.save(tournamentTable);
@@ -222,7 +223,8 @@ public class TournamentServiceImpl implements TournamentService {
                     Integer points = semiPoints.get();
                     tournamentTable.setPoints(points);
                     Team team = result.getTeam();
-                    team.setPoints(points * tournament.getTournFactor());
+                    team.setPoints(team.getPoints() == null ? points * tournament.getTournFactor()
+                            : team.getPoints() + points * tournament.getTournFactor());
                     tournamentTable.setTeam(teamRepo.save(team));
                     semiPoints.updateAndGet(v -> v - 2);
                     return  tournamentTableRepo.save(tournamentTable);
@@ -236,12 +238,13 @@ public class TournamentServiceImpl implements TournamentService {
                 .map(result -> {
                     TournamentTable tournamentTable = new TournamentTable();
                     tournamentTable.setTournament(tournament);
-                    Integer points = semiPoints.get();
+                    Integer points = quarterPoints.get();
                     tournamentTable.setPoints(points);
                     Team team = result.getTeam();
-                    team.setPoints(points * tournament.getTournFactor());
+                    team.setPoints(team.getPoints() == null ? points * tournament.getTournFactor()
+                            : team.getPoints() + points * tournament.getTournFactor());
                     tournamentTable.setTeam(teamRepo.save(team));
-                    semiPoints.updateAndGet(v -> v - 1);
+                    quarterPoints.updateAndGet(v -> v - 1);
                     return  tournamentTableRepo.save(tournamentTable);
                 })
                 .collect(Collectors.toList());

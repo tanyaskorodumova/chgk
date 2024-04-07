@@ -30,17 +30,16 @@ public interface QuestionRepo  extends JpaRepository<Question, Long> {
             "where gp.participant_id in (select distinct gpun.participant_id from game_participants gpun where gpun.game_id = :gameId and gpun.status <> 2)) " +
             ", old_questions as (select distinct question_id from game_questions where game_id in (select * from old_games)) " +
             "select * from questions where id not in (select * from old_questions) and complexity >= :minComplexity and complexity <= :maxComplexity " +
-            "and status = 2 and user_id not in (select distinct gpun.participant_id from game_participants gpun where gpun.game_id = :gameId) " +
-            "order by random(), complexity limit :number")
-    Page<Question> findGamePack(Pageable pageable, @Param("gameId") Long gameId,
+            "and status = 2 and coalesce(user_id, 0) not in (select distinct gpun.participant_id from game_participants gpun where gpun.game_id = :gameId) " +
+            "order by random() limit :number")
+    List<Question> findGamePack(@Param("gameId") Long gameId,
                                 @Param("minComplexity") Integer minComplexity,
                                 @Param("maxComplexity") Integer maxComplexity,
                                 @Param("number") Integer number);
 
     @Query(nativeQuery = true, value = "select * from questions where questions.id not in (select distinct game_questions.question_id from game_questions) " +
-            "and complexity >= :minComplexity and complexity <= :maxComplexity order by random(), complexity limit :number")
-    Page<Question> findFedGamePack(Pageable pageable,
-                                   @Param("minComplexity") Integer minComplexity,
+            "and complexity >= :minComplexity and complexity <= :maxComplexity order by random() limit :number")
+    List<Question> findFedGamePack(@Param("minComplexity") Integer minComplexity,
                                    @Param("maxComplexity") Integer maxComplexity,
                                    @Param("number") Integer number);
 }
