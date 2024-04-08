@@ -175,6 +175,10 @@ public class TournamentServiceImpl implements TournamentService {
     public Page<TournamentTableInfoResponse> getTournamentResults(Long id, Integer page, Integer perPage, String sort, Sort.Direction order) {
         Tournament tournament = getTournamentDb(id);
 
+        if (!tournament.getStatus().equals(TournamentStatus.FINISHED)) {
+            throw new CustomException("Турнир еще не завершен", HttpStatus.BAD_REQUEST);
+        }
+
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
 
         List<TournamentTableInfoResponse> all = tournamentTableRepo.findAllByTournament(tournament, request)
@@ -248,6 +252,9 @@ public class TournamentServiceImpl implements TournamentService {
                     return  tournamentTableRepo.save(tournamentTable);
                 })
                 .collect(Collectors.toList());
+
+        tournament.setStatus(TournamentStatus.FINISHED);
+        tournamentRepo.save(tournament);
 
     }
 }

@@ -166,6 +166,11 @@ public class QuestionServiceImpl implements QuestionService {
         question = questionRepo.save(question);
     }
 
+    @Override
+    public List<Question> getQuestionsToDelete() {
+        List<Question> allOld = questionRepo.findOld();
 
+        return allOld;
+    }
 
 }

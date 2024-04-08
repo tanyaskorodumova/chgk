@@ -31,4 +31,6 @@ public interface QuestionService {
     Page<QuestionInfoResponse> getQuestionsToApprove(Integer page, Integer perPage, String sort, Sort.Direction order);
 
     Question getQuestionDb(Long id);
+
+    List<Question> getQuestionsToDelete();
 }

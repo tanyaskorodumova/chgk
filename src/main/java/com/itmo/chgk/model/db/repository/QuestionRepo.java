@@ -42,4 +42,8 @@ public interface QuestionRepo  extends JpaRepository<Question, Long> {
     List<Question> findFedGamePack(@Param("minComplexity") Integer minComplexity,
                                    @Param("maxComplexity") Integer maxComplexity,
                                    @Param("number") Integer number);
+
+    @Query(value = "select * from questions where (status = 0 and created_At <= (current_date-31)) or (status = 1 and updated_At <= (current_date-31))",
+            nativeQuery = true)
+    List<Question> findOld();
 }

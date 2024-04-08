@@ -671,6 +671,23 @@ public class GameServiceImpl implements GameService {
         game.setStatus(GameStatus.ONGOING);
         game = gameRepo.save(game);
 
+        Tournament tournament = game.getTournament();
+        switch (game.getStage()) {
+            case QUALIFYING:
+                tournament.setStatus(TournamentStatus.QUALIFYING);
+                break;
+            case QUARTERFINAL:
+                tournament.setStatus(TournamentStatus.QUARTERFINALS);
+                break;
+            case SEMIFINAL:
+                tournament.setStatus(TournamentStatus.SEMIFINALS);
+                break;
+            case FINAL:
+                tournament.setStatus(TournamentStatus.FINAL);
+                break;
+        }
+        tournamentRepo.save(tournament);
+
         List<GameParticipant> gameParticipants = gameParticipantRepo.findAllByGameAndStatus(game, ParticipantStatus.APPROVED);
         List<GameQuestion> gameQuestions = gameQuestionRepo.findAllByGame(game);
 
