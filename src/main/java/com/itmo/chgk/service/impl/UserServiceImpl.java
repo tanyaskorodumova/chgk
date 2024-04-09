@@ -7,6 +7,8 @@ import com.itmo.chgk.model.db.repository.UserRepo;
 import com.itmo.chgk.model.dto.request.UserInfoRequest;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
 import com.itmo.chgk.model.enums.CommonStatus;
+import com.itmo.chgk.model.enums.UserRole;
+import com.itmo.chgk.service.LoggedUserManagementService;
 import com.itmo.chgk.service.UserService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final ObjectMapper mapper;
     private final UserRepo userRepo;
+    private final LoggedUserManagementService loggedUserManagementService;
 
     @Override
     public Page<UserInfoResponse> getAllUsers(Integer page, Integer perPage, String sort, Sort.Direction order) {
@@ -67,6 +70,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponse createUser(UserInfoRequest request) {
+        if (loggedUserManagementService.getUser() != null) {
+            throw new CustomException("Для создания нового пользователя необходимо разлогиниться", HttpStatus.LOCKED);
+        }
+
         userRepo.findByEmail(request.getEmail())
                 .ifPresent(user -> {
                     throw new CustomException("Данный email уже существует", HttpStatus.CONFLICT);
@@ -95,6 +102,7 @@ public class UserServiceImpl implements UserService {
 
         User user = mapper.convertValue(request, User.class);
         user.setBirthDate(bDay);
+        user.setRole(UserRole.USER);
         user.setStatus(CommonStatus.CREATED);
         user.setCreatedAt(LocalDateTime.now());
 
@@ -109,6 +117,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponse updateUser(Long id, UserInfoRequest request) {
+        if (loggedUserManagementService.getUser() == null) {
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUser().getId().equals(id)) {
+            throw new CustomException("Пользователь не имеет прав на редактирование данного пользователя", HttpStatus.LOCKED);
+        }
+
         User user = getUserDb(id);
 
         if (request.getEmail() != null && userRepo.findByEmail(request.getEmail()).isEmpty()) {
@@ -159,9 +174,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Long id) {
+        if (loggedUserManagementService.getUser() == null) {
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUser().getId().equals(id)) {
+            throw new CustomException("Пользователь не имеет прав на удаление данного пользователя", HttpStatus.LOCKED);
+        }
+
         User user = getUserDb(id);
         user.setStatus(CommonStatus.DELETED);
         user.setUpdatedAt(LocalDateTime.now());
-        user = userRepo.save(user);
+        userRepo.save(user);
+    }
+
+    public void setRole(Long id, UserRole role) {
+        User user = getUserDb(id);
+        user.setRole(role);
+        userRepo.save(user);
     }
 }

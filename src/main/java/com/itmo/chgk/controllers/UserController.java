@@ -1,12 +1,16 @@
 package com.itmo.chgk.controllers;
 
+import com.itmo.chgk.exceptions.CustomException;
 import com.itmo.chgk.model.dto.request.UserInfoRequest;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
+import com.itmo.chgk.model.enums.UserRole;
+import com.itmo.chgk.service.LoggedUserManagementService;
 import com.itmo.chgk.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -16,6 +20,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final LoggedUserManagementService loggedUserManagementService;
 
     @GetMapping("/all")
     @Operation(summary = "Получение информации обо всех пользователях")
@@ -49,6 +54,17 @@ public class UserController {
     @Operation(summary = "Удаление пользователя")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
+    }
+
+    @PutMapping("/{id}/role")
+    @Operation(summary = "Установление роли пользователя")
+    public void setUserRole(@PathVariable Long id, @RequestParam UserRole role) {
+        if (loggedUserManagementService.getUser() == null) {
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
+            throw new CustomException("Необходимы права администратора", HttpStatus.LOCKED);
+        }
+        userService.setRole(id, role);
     }
 
 }
