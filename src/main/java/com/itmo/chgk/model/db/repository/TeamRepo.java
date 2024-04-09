@@ -14,4 +14,8 @@ import org.springframework.data.repository.query.Param;
 public interface TeamRepo extends JpaRepository<Team, Long> {
     Page<Team> findAllByStatusIsNot(Pageable pageable, CommonStatus status);
 
+    Team findFirstByCaptain(User captain);
+
+    Team findFirstByViceCaptain(User viceCaptain);
+
 }

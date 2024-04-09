@@ -6,10 +6,8 @@ import com.itmo.chgk.model.db.entity.*;
 import com.itmo.chgk.model.db.repository.*;
 import com.itmo.chgk.model.dto.request.TournamentInfoRequest;
 import com.itmo.chgk.model.dto.response.*;
-import com.itmo.chgk.model.enums.GameStatus;
-import com.itmo.chgk.model.enums.ParticipantStatus;
-import com.itmo.chgk.model.enums.Stage;
-import com.itmo.chgk.model.enums.TournamentStatus;
+import com.itmo.chgk.model.enums.*;
+import com.itmo.chgk.service.LoggedUserManagementService;
 import com.itmo.chgk.service.TeamService;
 import com.itmo.chgk.service.TournamentService;
 import com.itmo.chgk.utils.PaginationUtil;
@@ -40,6 +38,7 @@ public class TournamentServiceImpl implements TournamentService {
     private final TeamRepo teamRepo;
     private final TournamentTableRepo tournamentTableRepo;
     private final TeamService teamService;
+    private final LoggedUserManagementService loggedUserManagementService;
 
     @Override
     public Page<TournamentInfoResponse> getAllTournaments(Integer page, Integer perPage, String sort, Sort.Direction order) {
@@ -67,6 +66,13 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentInfoResponse createTournament(TournamentInfoRequest request) {
+        if (loggedUserManagementService.getUser() == null) {
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
+                    !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
+            throw new CustomException("У пользователя нет прав на создание турнира", HttpStatus.LOCKED);
+        }
+
         if (request.getTournName() == null) {
             throw new CustomException("Необходимо указать название турнира", HttpStatus.BAD_REQUEST);
         }
@@ -81,6 +87,7 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournament.setMinPoints(tournament.getMinPoints() == null ? 0 : tournament.getMinPoints());
         tournament.setStatus(TournamentStatus.PLANNED);
+        tournament.setOrganizer(loggedUserManagementService.getUser());
         tournament.setCreatedAt(LocalDateTime.now());
 
         tournament = tournamentRepo.save(tournament);
@@ -89,6 +96,16 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentInfoResponse updateTournament(Long id, TournamentInfoRequest request) {
+        if (loggedUserManagementService.getUser() == null) {
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
+            throw new CustomException("У пользователя нет прав на редактирование турнира", HttpStatus.LOCKED);
+        } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
+                !loggedUserManagementService.getTournamentId().equals(id)) {
+            throw new CustomException("У пользователя нет прав на редактирование данного турнира", HttpStatus.LOCKED);
+        }
+
         Tournament tournament = getTournamentDb(id);
 
         if (tournament.getStatus().equals(TournamentStatus.FINAL) ||
@@ -112,6 +129,16 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public void deleteTournament(Long id) {
+        if (loggedUserManagementService.getUser() == null) {
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
+            throw new CustomException("У пользователя нет прав на удаление турнира", HttpStatus.LOCKED);
+        } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
+                !loggedUserManagementService.getTournamentId().equals(id)) {
+            throw new CustomException("У пользователя нет прав на удаление данного турнира", HttpStatus.LOCKED);
+        }
+
         Tournament tournament = getTournamentDb(id);
         if (tournament.getStatus().equals(TournamentStatus.FINISHED)) {
             throw new CustomException("Нельзя отменить завершенный турнир", HttpStatus.BAD_REQUEST);
@@ -127,7 +154,7 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournament.setUpdatedAt(LocalDateTime.now());
 
-        tournament = tournamentRepo.save(tournament);
+        tournamentRepo.save(tournament);
     }
 
     @Override

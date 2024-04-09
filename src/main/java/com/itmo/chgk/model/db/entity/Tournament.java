@@ -52,4 +52,7 @@ public class Tournament {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     LocalDateTime updatedAt;
+
+    @OneToOne
+    User organizer;
 }

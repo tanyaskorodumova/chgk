@@ -18,4 +18,6 @@ public interface UserRepo  extends JpaRepository<User, Long> {
     @Query("select u from User u where u.team.id = :teamId")
     Page<User> findAllByTeam(@Param("teamId") Long teamId, Pageable pageable);
 
+    User findByLoginAndPassword(String login, String password);
+
 }
