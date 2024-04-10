@@ -86,7 +86,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public TeamInfoResponse createTeam(TeamInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
         if (request.getTeamName() == null) {
@@ -96,7 +96,7 @@ public class TeamServiceImpl implements TeamService {
         if (request.getCaptainId() == null) {
             throw new CustomException("Необходимо указать id капитана", HttpStatus.BAD_REQUEST);
         } else if (!request.getCaptainId().equals(loggedUserManagementService.getUser().getId())) {
-            throw new CustomException("Капитаном должен быть создатель команды", HttpStatus.LOCKED);
+            throw new CustomException("Капитаном должен быть создатель команды", HttpStatus.FORBIDDEN);
         }
 
         Team team = mapper.convertValue(request, Team.class);
@@ -125,15 +125,15 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public TeamInfoResponse updateTeam(Long id, TeamInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
                     !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
                     !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("Пользователь не имеет прав на редактирование команды", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на редактирование команды", HttpStatus.FORBIDDEN);
         } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
                 loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
                 !loggedUserManagementService.getTeamId().equals(id)) {
-            throw new CustomException("Пользователь не имеет прав на редактирование данной команды", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на редактирование данной команды", HttpStatus.FORBIDDEN);
         }
 
         Team team = getTeamDb(id);
@@ -142,7 +142,7 @@ public class TeamServiceImpl implements TeamService {
         if (request.getCaptainId() != null) {
             if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-                throw new CustomException("Необходимы права капитана или администратора", HttpStatus.LOCKED);
+                throw new CustomException("Необходимы права капитана или администратора", HttpStatus.FORBIDDEN);
             }
             User captain = userService.getUserDb(request.getCaptainId());
             userService.setRole(captain.getId(), UserRole.CAPTAIN);
@@ -166,15 +166,15 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public void deleteTeam(Long id) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("Пользователь не имеет прав на удаление команды", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на удаление команды", HttpStatus.FORBIDDEN);
         } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
                 loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
                 !loggedUserManagementService.getTeamId().equals(id)) {
-            throw new CustomException("Пользователь не имеет прав на удаление данной команды", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на удаление данной команды", HttpStatus.FORBIDDEN);
         }
 
         Team team = getTeamDb(id);
@@ -187,15 +187,15 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Page<UserInfoResponse> setMember(Long teamId, Long userId, Integer page, Integer perPage, String sort, Sort.Direction order) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("Пользователь не имеет прав на редактирование состава команды", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на редактирование состава команды", HttpStatus.FORBIDDEN);
         } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
                 loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
                 !loggedUserManagementService.getTeamId().equals(teamId)) {
-            throw new CustomException("Пользователь не имеет прав на редактирование состава данной команды", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на редактирование состава данной команды", HttpStatus.FORBIDDEN);
         }
 
         Team team = getTeamDb(teamId);
@@ -213,12 +213,12 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Page<UserInfoResponse> deleteMember(Long teamId, Long userId, Integer page, Integer perPage, String sort, Sort.Direction order) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
                 !loggedUserManagementService.getUser().getId().equals(userId)) {
-            throw new CustomException("Пользователь не имеет прав на удаление данного пользователя из команды", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на удаление данного пользователя из команды", HttpStatus.FORBIDDEN);
         }
 
         Team team = getTeamDb(teamId);

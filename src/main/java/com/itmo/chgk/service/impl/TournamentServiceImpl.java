@@ -67,10 +67,10 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     public TournamentInfoResponse createTournament(TournamentInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                     !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на создание турнира", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на создание турнира", HttpStatus.FORBIDDEN);
         }
 
         if (request.getTournName() == null) {
@@ -97,13 +97,13 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     public TournamentInfoResponse updateTournament(Long id, TournamentInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на редактирование турнира", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на редактирование турнира", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(id)) {
-            throw new CustomException("У пользователя нет прав на редактирование данного турнира", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на редактирование данного турнира", HttpStatus.FORBIDDEN);
         }
 
         Tournament tournament = getTournamentDb(id);
@@ -130,13 +130,13 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     public void deleteTournament(Long id) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на удаление турнира", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на удаление турнира", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(id)) {
-            throw new CustomException("У пользователя нет прав на удаление данного турнира", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на удаление данного турнира", HttpStatus.FORBIDDEN);
         }
 
         Tournament tournament = getTournamentDb(id);

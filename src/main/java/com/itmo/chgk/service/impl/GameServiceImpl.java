@@ -78,10 +78,10 @@ public class GameServiceImpl implements GameService {
     @Override
     public GameInfoResponse createGame(GameInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("У пользователя нет доступа к созданию игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет доступа к созданию игры", HttpStatus.FORBIDDEN);
         }
 
         if (request.getGameName() == null) {
@@ -103,7 +103,7 @@ public class GameServiceImpl implements GameService {
             Tournament tournament = tournamentService.getTournamentDb(request.getTournamentId());
             if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                     !tournament.getId().equals(loggedUserManagementService.getTournamentId())) {
-                throw new CustomException("У пользователя нет прав на создание игры данного турнира", HttpStatus.LOCKED);
+                throw new CustomException("У пользователя нет прав на создание игры данного турнира", HttpStatus.FORBIDDEN);
             }
 
             if (tournament.getStatus().equals(TournamentStatus.CANCELLED)) {
@@ -152,10 +152,10 @@ public class GameServiceImpl implements GameService {
     @Override
     public GameInfoResponse updateGame(Long id, GameInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("У пользователя нет доступа к редактированию игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет доступа к редактированию игры", HttpStatus.FORBIDDEN);
         }
 
         Game game = getGameDb(id);
@@ -168,7 +168,7 @@ public class GameServiceImpl implements GameService {
         Tournament tournament = game.getTournament();
         if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !tournament.getId().equals(loggedUserManagementService.getTournamentId())) {
-            throw new CustomException("У пользователя нет прав на редактирование данной игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на редактирование данной игры", HttpStatus.FORBIDDEN);
         }
 
         if (request.getTournamentId() != null && !game.getTournament().getId().equals(request.getTournamentId())) {
@@ -217,17 +217,17 @@ public class GameServiceImpl implements GameService {
     @Override
     public void deleteGame(Long id) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("У пользователя нет доступа к редактированию игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет доступа к редактированию игры", HttpStatus.FORBIDDEN);
         }
 
         Game game = getGameDb(id);
 
         if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
             !game.getTournament().getId().equals(loggedUserManagementService.getTournamentId())) {
-            throw new CustomException("У пользователя нет прав на удаление данной игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на удаление данной игры", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.FINISHED) ||
@@ -246,15 +246,15 @@ public class GameServiceImpl implements GameService {
         Team team = teamService.getTeamDb(teamId);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("У пользователя нет прав на регистрацию команды на игру", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на регистрацию команды на игру", HttpStatus.FORBIDDEN);
         } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
                     loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
                     !loggedUserManagementService.getTeamId().equals(team.getId())) {
-            throw new CustomException("У пользователя нет прав на регистрацию данной команды на игру", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на регистрацию данной команды на игру", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.CANCELLED)) {
@@ -310,15 +310,15 @@ public class GameServiceImpl implements GameService {
         Team participant = teamService.getTeamDb(teamId);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("У пользователя нет прав на подтверждение участия команды в игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на подтверждение участия команды в игре", HttpStatus.FORBIDDEN);
         } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
                 loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
                 !loggedUserManagementService.getTeamId().equals(participant.getId())) {
-            throw new CustomException("У пользователя нет прав на регистрацию данной команды на игру", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на регистрацию данной команды на игру", HttpStatus.FORBIDDEN);
         }
 
         GameParticipant gameParticipant = gameParticipantRepo.findByGameAndParticipant(game, participant);
@@ -347,16 +347,16 @@ public class GameServiceImpl implements GameService {
         Team participant = teamService.getTeamDb(teamId);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на отмену участия команды в игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на отмену участия команды в игре", HttpStatus.FORBIDDEN);
         } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
                 loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
                 !loggedUserManagementService.getTeamId().equals(participant.getId())) {
-            throw new CustomException("У пользователя нет прав на отмену участия данной команды в игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на отмену участия данной команды в игре", HttpStatus.FORBIDDEN);
         }
 
         GameParticipant gameParticipant = gameParticipantRepo.findByGameAndParticipant(game, participant);
@@ -434,13 +434,13 @@ public class GameServiceImpl implements GameService {
         Game game = getGameDb(id);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на получение вопросов к игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на получение вопросов к игре", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на получение вопросов к данной игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на получение вопросов к данной игре", HttpStatus.FORBIDDEN);
         }
 
         List<GameQuestionInfoResponse> all = gameQuestionRepo.findAllByGame(game, request)
@@ -464,13 +464,13 @@ public class GameServiceImpl implements GameService {
         Game game = getGameDb(id);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на установку вопросов к игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на установку вопросов к игре", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на установку вопросов к данной игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на установку вопросов к данной игре", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.FINISHED) ||
@@ -531,13 +531,13 @@ public class GameServiceImpl implements GameService {
         Question question = questionService.getQuestionDb(questionId);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на установку вопросов к игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на установку вопросов к игре", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на установку вопросов к данной игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на установку вопросов к данной игре", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.FINISHED) ||
@@ -570,13 +570,13 @@ public class GameServiceImpl implements GameService {
         Question question = questionService.getQuestionDb(questionId);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на удаление вопросов к игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на удаление вопросов к игре", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на удаление вопросов к данной игре", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на удаление вопросов к данной игре", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.FINISHED) ||
@@ -611,13 +611,13 @@ public class GameServiceImpl implements GameService {
         Game game = getGameDb(id);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на получение информации о вопросах игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на получение информации о вопросах игры", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на получение информации о вопросах данной игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на получение информации о вопросах данной игры", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.CANCELLED) ||
@@ -656,13 +656,13 @@ public class GameServiceImpl implements GameService {
         Game game = getGameDb(gameId);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на установку результатов игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на установку результатов игры", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на установку результатов данной игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на установку результатов данной игры", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.CANCELLED) ||
@@ -693,7 +693,6 @@ public class GameServiceImpl implements GameService {
                 : (gameResult.getPoints() == null ? 0 : gameResult.getPoints()));
         gameResult = resultRepo.save(gameResult);
 
-        //team.setPoints(request.getIsCorrect() ? (team.getPoints() == null ? 1 : team.getPoints() + 1) : team.getPoints());
         team.setAnswers(team.getAnswers() == null ? 1 : team.getAnswers() + 1);
         team.setCorrectAnswers(request.getIsCorrect() ?
                 (team.getCorrectAnswers() == null ? 1 : team.getCorrectAnswers() + 1)
@@ -710,13 +709,13 @@ public class GameServiceImpl implements GameService {
         Game game = getGameDb(id);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на получение информации о вопросах игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на получение информации о вопросах игры", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на получение информации о вопросах данной игры", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на получение информации о вопросах данной игры", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.CANCELLED) ||
@@ -783,13 +782,13 @@ public class GameServiceImpl implements GameService {
         Game game = getGameDb(id);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на управление игрой", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на управление игрой", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на управление данной игрой", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на управление данной игрой", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.FINISHED)) {
@@ -821,13 +820,13 @@ public class GameServiceImpl implements GameService {
         Game game = getGameDb(id);
 
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER)) {
-            throw new CustomException("У пользователя нет прав на управление игрой", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на управление игрой", HttpStatus.FORBIDDEN);
         } else if (loggedUserManagementService.getUser().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(game.getTournament().getId())){
-            throw new CustomException("У пользователя нет прав на управление данной игрой", HttpStatus.LOCKED);
+            throw new CustomException("У пользователя нет прав на управление данной игрой", HttpStatus.FORBIDDEN);
         }
 
         if (game.getStatus().equals(GameStatus.CANCELLED)) {

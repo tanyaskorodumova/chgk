@@ -36,7 +36,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public Page<QuestionInfoResponse> getAllQuestions(Integer page, Integer perPage, String sort, Sort.Direction order) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
@@ -63,7 +63,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionInfoResponse getQuestion(Long id) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
         Question question = getQuestionDb(id);
@@ -76,7 +76,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public List<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
         List<QuestionInfoResponse> questions = questionRepo.findByQuestionPackRequest(request.getMinComplexity() == null? 0 : request.getMinComplexity().ordinal(),
@@ -97,7 +97,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionInfoResponse getAnswer(Long id) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
         Question question = getQuestionDb(id);
@@ -107,7 +107,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionInfoResponse createQuestion(QuestionInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
         if (request.getQuestion().isEmpty()) {
@@ -130,14 +130,14 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionInfoResponse updateQuestion(Long id, QuestionInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
         Question question = getQuestionDb(id);
 
         if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !question.getUser().getId().equals(loggedUserManagementService.getUser().getId())) {
-            throw new CustomException("Пользователь не имеет прав на редактирование данного вопроса", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на редактирование данного вопроса", HttpStatus.FORBIDDEN);
         }
 
         question.setQuestion(request.getQuestion() == null ? question.getQuestion() : request.getQuestion());
@@ -155,9 +155,9 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public Page<QuestionInfoResponse> getQuestionsToApprove(Integer page, Integer perPage, String sort, Sort.Direction order) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("Необходимо обладать правами администратора", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо обладать правами администратора", HttpStatus.FORBIDDEN);
         }
 
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
@@ -176,9 +176,9 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionInfoResponse approveQuestion(Long id, QuestionInfoRequest request, QuestionStatus status) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("Необходимо обладать правами администратора", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо обладать правами администратора", HttpStatus.FORBIDDEN);
         }
 
         Question question = getQuestionDb(id);
@@ -203,14 +203,14 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public void deleteQuestion(Long id) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
         Question question = getQuestionDb(id);
 
         if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !question.getUser().getId().equals(loggedUserManagementService.getUser().getId())) {
-            throw new CustomException("Пользователь не имеет прав на удаление данного вопроса", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на удаление данного вопроса", HttpStatus.FORBIDDEN);
         }
 
         question.setStatus(QuestionStatus.DELETED);

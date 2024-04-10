@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserInfoResponse createUser(UserInfoRequest request) {
         if (loggedUserManagementService.getUser() != null) {
-            throw new CustomException("Для создания нового пользователя необходимо разлогиниться", HttpStatus.LOCKED);
+            throw new CustomException("Для создания нового пользователя необходимо разлогиниться", HttpStatus.FORBIDDEN);
         }
 
         userRepo.findByEmail(request.getEmail())
@@ -118,10 +118,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserInfoResponse updateUser(Long id, UserInfoRequest request) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getId().equals(id)) {
-            throw new CustomException("Пользователь не имеет прав на редактирование данного пользователя", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на редактирование данного пользователя", HttpStatus.FORBIDDEN);
         }
 
         User user = getUserDb(id);
@@ -175,10 +175,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
                 !loggedUserManagementService.getUser().getId().equals(id)) {
-            throw new CustomException("Пользователь не имеет прав на удаление данного пользователя", HttpStatus.LOCKED);
+            throw new CustomException("Пользователь не имеет прав на удаление данного пользователя", HttpStatus.FORBIDDEN);
         }
 
         User user = getUserDb(id);

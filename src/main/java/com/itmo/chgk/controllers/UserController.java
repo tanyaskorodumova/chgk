@@ -60,9 +60,9 @@ public class UserController {
     @Operation(summary = "Установление роли пользователя")
     public void setUserRole(@PathVariable Long id, @RequestParam UserRole role) {
         if (loggedUserManagementService.getUser() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.LOCKED);
+            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("Необходимы права администратора", HttpStatus.LOCKED);
+            throw new CustomException("Необходимы права администратора", HttpStatus.FORBIDDEN);
         }
         userService.setRole(id, role);
     }
