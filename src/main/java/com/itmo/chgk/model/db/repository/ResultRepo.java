@@ -18,6 +18,6 @@ public interface ResultRepo  extends JpaRepository<Result, Long> {
 
     Result findByGameAndTeam(Game game, Team team);
 
-    @Query(value = "select R from Result R where R.game.tournament = :tournament and R.game.stage = :stage order by R.place ASC, R.points DESC")
-    List<Result> findAllByTournamentAndStage(Tournament tournament, Stage stage);
+    @Query(value = "select R from Result R where R.game.tournament = :tournament and R.game.stage = :stage and R.place >= :place order by R.place ASC, R.points DESC")
+    List<Result> findAllByTournamentAndStageAndPlaceAfter(Tournament tournament, Stage stage, Integer place);
 }

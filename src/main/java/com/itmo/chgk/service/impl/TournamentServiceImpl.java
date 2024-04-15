@@ -228,7 +228,7 @@ public class TournamentServiceImpl implements TournamentService {
     public void countResults(Long id) {
         Tournament tournament = getTournamentDb(id);
 
-        List<TournamentTable> finalists = resultRepo.findAllByTournamentAndStage(tournament, Stage.FINAL)
+        List<TournamentTable> finalists = resultRepo.findAllByTournamentAndStageAndPlaceAfter(tournament, Stage.FINAL, 10)
                 .stream()
                 .map(result -> {
                     TournamentTable tournamentTable = new TournamentTable();
@@ -245,9 +245,8 @@ public class TournamentServiceImpl implements TournamentService {
                 .collect(Collectors.toList());
 
         AtomicReference<Integer> semiPoints = new AtomicReference<>(44);
-        List<TournamentTable> semiFinalists = resultRepo.findAllByTournamentAndStage(tournament, Stage.SEMIFINAL)
+        List<TournamentTable> semiFinalists = resultRepo.findAllByTournamentAndStageAndPlaceAfter(tournament, Stage.SEMIFINAL, 6)
                 .stream()
-                .filter(result -> result.getPlace() >= 6)
                 .map(result -> {
                     TournamentTable tournamentTable = new TournamentTable();
                     tournamentTable.setTournament(tournament);
@@ -263,9 +262,8 @@ public class TournamentServiceImpl implements TournamentService {
                 .collect(Collectors.toList());
 
         AtomicReference<Integer> quarterPoints = new AtomicReference<>(20);
-        List<TournamentTable> quarterFinalists = resultRepo.findAllByTournamentAndStage(tournament, Stage.QUARTERFINAL)
+        List<TournamentTable> quarterFinalists = resultRepo.findAllByTournamentAndStageAndPlaceAfter(tournament, Stage.QUARTERFINAL, 6)
                 .stream()
-                .filter(result -> result.getPlace() >= 6)
                 .map(result -> {
                     TournamentTable tournamentTable = new TournamentTable();
                     tournamentTable.setTournament(tournament);
