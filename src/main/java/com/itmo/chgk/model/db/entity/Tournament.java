@@ -54,5 +54,5 @@ public class Tournament {
     LocalDateTime updatedAt;
 
     @OneToOne
-    UserD organizer;
+    UserDetail organizer;
 }

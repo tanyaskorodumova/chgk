@@ -2,7 +2,7 @@ package com.itmo.chgk.service.impl;
 
 import com.itmo.chgk.model.db.entity.Team;
 import com.itmo.chgk.model.db.entity.Tournament;
-import com.itmo.chgk.model.db.entity.UserD;
+import com.itmo.chgk.model.db.entity.UserDetail;
 import com.itmo.chgk.model.db.repository.TeamRepo;
 import com.itmo.chgk.model.db.repository.TournamentRepo;
 import com.itmo.chgk.model.db.repository.UserRepo;
@@ -34,19 +34,19 @@ public class LoginProcessorImpl implements LoginProcessor {
 
         boolean loggedIn = false;
 
-        UserD userD = userRepo.findByLoginAndPassword(login, password);
+        UserDetail userDetail = userRepo.findByLoginAndPassword(login, password);
 
-        if (userD != null) {
+        if (userDetail != null) {
             loggedIn = true;
-            loggedUserManagementService.setUserD(userD);
-            if(userD.getRole().equals(UserRole.CAPTAIN)) {
-                Team team = teamRepo.findFirstByCaptain(userD);
+            loggedUserManagementService.setUserDetail(userDetail);
+            if(userDetail.getRole().equals(UserRole.CAPTAIN)) {
+                Team team = teamRepo.findFirstByCaptain(userDetail);
                 loggedUserManagementService.setTeamId(team == null ? null : team.getId());
-            } else if (userD.getRole().equals(UserRole.VICECAPTAIN)) {
-                Team team = teamRepo.findFirstByViceCaptain(userD);
+            } else if (userDetail.getRole().equals(UserRole.VICECAPTAIN)) {
+                Team team = teamRepo.findFirstByViceCaptain(userDetail);
                 loggedUserManagementService.setTeamId(team == null ? null : team.getId());
-            } else if (userD.getRole().equals(UserRole.ORGANIZER)) {
-                Tournament tournament = tournamentRepo.findFirstByOrganizer(userD);
+            } else if (userDetail.getRole().equals(UserRole.ORGANIZER)) {
+                Tournament tournament = tournamentRepo.findFirstByOrganizer(userDetail);
                 loggedUserManagementService.setTournamentId(tournament == null ? null : tournament.getId());
             }
         }

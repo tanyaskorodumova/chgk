@@ -31,14 +31,14 @@ public class Team {
     String teamName;
 
     @OneToOne
-    UserD captain;
+    UserDetail captain;
 
     @OneToOne
-    UserD viceCaptain;
+    UserDetail viceCaptain;
 
     @OneToMany
     @JsonManagedReference(value = "team_users")
-    List<UserD> userDS;
+    List<UserDetail> userDetails;
 
     Integer points;
 

@@ -31,7 +31,7 @@ public class Question {
     QuestionComplexity complexity;
 
     @ManyToOne
-    UserD userD;
+    UserDetail userDetail;
 
     QuestionStatus status;
 

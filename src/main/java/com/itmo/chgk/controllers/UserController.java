@@ -59,9 +59,9 @@ public class UserController {
     @PutMapping("/{id}/role")
     @Operation(summary = "Установление роли пользователя")
     public void setUserRole(@PathVariable Long id, @RequestParam UserRole role) {
-        if (loggedUserManagementService.getUserD() == null) {
+        if (loggedUserManagementService.getUserDetail() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserD().getRole().equals(UserRole.ADMIN)) {
+        } else if (!loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ADMIN)) {
             throw new CustomException("Необходимы права администратора", HttpStatus.FORBIDDEN);
         }
         userService.setRole(id, role);

@@ -1,6 +1,6 @@
 package com.itmo.chgk.service;
 
-import com.itmo.chgk.model.db.entity.UserD;
+import com.itmo.chgk.model.db.entity.UserDetail;
 import com.itmo.chgk.model.dto.request.UserInfoRequest;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
 import com.itmo.chgk.model.enums.UserRole;
@@ -18,7 +18,7 @@ public interface UserService {
 
     void deleteUser(Long id);
 
-    UserD getUserDb(Long id);
+    UserDetail getUserDb(Long id);
 
     void setRole(Long id, UserRole role);
 }
