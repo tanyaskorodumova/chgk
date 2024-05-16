@@ -16,8 +16,8 @@ public class LoginController {
     @GetMapping("/login")
     @Operation(summary = "Проверка авторизации")
     public String loginGet() {
-        if (loggedUserManagementService.getUser() != null) {
-            return "Вход произведен ранее под логином " + loggedUserManagementService.getUser().getLogin();
+        if (loggedUserManagementService.getUserD() != null) {
+            return "Вход произведен ранее под логином " + loggedUserManagementService.getUserD().getLogin();
         }
         else {
             return "Введите имя пользователя и пароль";
@@ -27,8 +27,8 @@ public class LoginController {
     @PostMapping("/login")
     @Operation(summary = "Вход в систему")
     public String loginPost(@RequestParam String login, @RequestParam String password) {
-        if (loggedUserManagementService.getUser() != null) {
-            return "Вход произведен ранее под логином " + loggedUserManagementService.getUser().getLogin();
+        if (loggedUserManagementService.getUserD() != null) {
+            return "Вход произведен ранее под логином " + loggedUserManagementService.getUserD().getLogin();
         }
         else {
             loginProcessor.setLogin(login);
@@ -45,7 +45,7 @@ public class LoginController {
     @GetMapping("/logout")
     @Operation(summary = "Выход из системы")
     public String logout() {
-        loggedUserManagementService.setUser(null);
+        loggedUserManagementService.setUserD(null);
         loggedUserManagementService.setTeamId(null);
         loggedUserManagementService.setTournamentId(null);
         return "Выход произведен";

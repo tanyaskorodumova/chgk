@@ -5,7 +5,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 
 @Getter

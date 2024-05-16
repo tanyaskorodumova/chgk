@@ -3,7 +3,7 @@ package com.itmo.chgk.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itmo.chgk.exceptions.CustomException;
 import com.itmo.chgk.model.db.entity.Team;
-import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.db.entity.UserD;
 import com.itmo.chgk.model.db.repository.TeamRepo;
 import com.itmo.chgk.model.db.repository.UserRepo;
 import com.itmo.chgk.model.dto.request.TeamInfoRequest;
@@ -85,7 +85,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public TeamInfoResponse createTeam(TeamInfoRequest request) {
-        if (loggedUserManagementService.getUser() == null) {
+        if (loggedUserManagementService.getUserD() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
         }
 
@@ -95,20 +95,20 @@ public class TeamServiceImpl implements TeamService {
 
         if (request.getCaptainId() == null) {
             throw new CustomException("Необходимо указать id капитана", HttpStatus.BAD_REQUEST);
-        } else if (!request.getCaptainId().equals(loggedUserManagementService.getUser().getId())) {
+        } else if (!request.getCaptainId().equals(loggedUserManagementService.getUserD().getId())) {
             throw new CustomException("Капитаном должен быть создатель команды", HttpStatus.FORBIDDEN);
         }
 
         Team team = mapper.convertValue(request, Team.class);
 
-        User captain = userService.getUserDb(request.getCaptainId());
+        UserD captain = userService.getUserDb(request.getCaptainId());
         userService.setRole(captain.getId(), UserRole.CAPTAIN);
-        loggedUserManagementService.setUser(captain);
+        loggedUserManagementService.setUserD(captain);
         team.setTeamName(request.getTeamName());
         team.setCaptain(captain);
 
         if (request.getViceCaptainId() != null) {
-            User viceCaptain = userService.getUserDb(request.getViceCaptainId());
+            UserD viceCaptain = userService.getUserDb(request.getViceCaptainId());
             userService.setRole(viceCaptain.getId(), UserRole.VICECAPTAIN);
             team.setViceCaptain(viceCaptain);
         }
@@ -124,14 +124,14 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public TeamInfoResponse updateTeam(Long id, TeamInfoRequest request) {
-        if (loggedUserManagementService.getUser() == null) {
+        if (loggedUserManagementService.getUserD() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
-                    !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
-                    !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
+        } else if (!loggedUserManagementService.getUserD().getRole().equals(UserRole.CAPTAIN) &&
+                    !loggedUserManagementService.getUserD().getRole().equals(UserRole.VICECAPTAIN) &&
+                    !loggedUserManagementService.getUserD().getRole().equals(UserRole.ADMIN)) {
             throw new CustomException("Пользователь не имеет прав на редактирование команды", HttpStatus.FORBIDDEN);
-        } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
-                loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
+        } else if ((loggedUserManagementService.getUserD().getRole().equals(UserRole.CAPTAIN) ||
+                loggedUserManagementService.getUserD().getRole().equals(UserRole.VICECAPTAIN)) &&
                 !loggedUserManagementService.getTeamId().equals(id)) {
             throw new CustomException("Пользователь не имеет прав на редактирование данной команды", HttpStatus.FORBIDDEN);
         }
@@ -140,17 +140,17 @@ public class TeamServiceImpl implements TeamService {
         team.setTeamName(request.getTeamName() == null ? team.getTeamName() : request.getTeamName());
 
         if (request.getCaptainId() != null) {
-            if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
-                !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
+            if (!loggedUserManagementService.getUserD().getRole().equals(UserRole.CAPTAIN) &&
+                !loggedUserManagementService.getUserD().getRole().equals(UserRole.ADMIN)) {
                 throw new CustomException("Необходимы права капитана или администратора", HttpStatus.FORBIDDEN);
             }
-            User captain = userService.getUserDb(request.getCaptainId());
+            UserD captain = userService.getUserDb(request.getCaptainId());
             userService.setRole(captain.getId(), UserRole.CAPTAIN);
             team.setCaptain(captain);
         }
 
         if (request.getViceCaptainId() != null) {
-            User viceCaptain = userService.getUserDb(request.getViceCaptainId());
+            UserD viceCaptain = userService.getUserDb(request.getViceCaptainId());
             userService.setRole(viceCaptain.getId(), UserRole.VICECAPTAIN);
             team.setViceCaptain(viceCaptain);
         }
@@ -165,14 +165,14 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public void deleteTeam(Long id) {
-        if (loggedUserManagementService.getUser() == null) {
+        if (loggedUserManagementService.getUserD() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
-                !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
-                !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
+        } else if (!loggedUserManagementService.getUserD().getRole().equals(UserRole.CAPTAIN) &&
+                !loggedUserManagementService.getUserD().getRole().equals(UserRole.VICECAPTAIN) &&
+                !loggedUserManagementService.getUserD().getRole().equals(UserRole.ADMIN)) {
             throw new CustomException("Пользователь не имеет прав на удаление команды", HttpStatus.FORBIDDEN);
-        } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
-                loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
+        } else if ((loggedUserManagementService.getUserD().getRole().equals(UserRole.CAPTAIN) ||
+                loggedUserManagementService.getUserD().getRole().equals(UserRole.VICECAPTAIN)) &&
                 !loggedUserManagementService.getTeamId().equals(id)) {
             throw new CustomException("Пользователь не имеет прав на удаление данной команды", HttpStatus.FORBIDDEN);
         }
@@ -186,46 +186,46 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public Page<UserInfoResponse> setMember(Long teamId, Long userId, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        if (loggedUserManagementService.getUser() == null) {
+        if (loggedUserManagementService.getUserD() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
-                !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
-                !loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN)) {
+        } else if (!loggedUserManagementService.getUserD().getRole().equals(UserRole.CAPTAIN) &&
+                !loggedUserManagementService.getUserD().getRole().equals(UserRole.VICECAPTAIN) &&
+                !loggedUserManagementService.getUserD().getRole().equals(UserRole.ADMIN)) {
             throw new CustomException("Пользователь не имеет прав на редактирование состава команды", HttpStatus.FORBIDDEN);
-        } else if ((loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) ||
-                loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN)) &&
+        } else if ((loggedUserManagementService.getUserD().getRole().equals(UserRole.CAPTAIN) ||
+                loggedUserManagementService.getUserD().getRole().equals(UserRole.VICECAPTAIN)) &&
                 !loggedUserManagementService.getTeamId().equals(teamId)) {
             throw new CustomException("Пользователь не имеет прав на редактирование состава данной команды", HttpStatus.FORBIDDEN);
         }
 
         Team team = getTeamDb(teamId);
-        User user = userService.getUserDb(userId);
+        UserD userD = userService.getUserDb(userId);
 
-        List<User> members = team.getUsers();
-        members.add(user);
-        user.setTeam(team);
+        List<UserD> members = team.getUserDS();
+        members.add(userD);
+        userD.setTeam(team);
         team = teamRepo.save(team);
-        userRepo.save(user);
+        userRepo.save(userD);
 
         return getMembers(teamId, page, perPage, sort, order);
     }
 
     @Override
     public Page<UserInfoResponse> deleteMember(Long teamId, Long userId, Integer page, Integer perPage, String sort, Sort.Direction order) {
-        if (loggedUserManagementService.getUser() == null) {
+        if (loggedUserManagementService.getUserD() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUser().getRole().equals(UserRole.CAPTAIN) &&
-                !loggedUserManagementService.getUser().getRole().equals(UserRole.VICECAPTAIN) &&
-                !loggedUserManagementService.getUser().getId().equals(userId)) {
+        } else if (!loggedUserManagementService.getUserD().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUserD().getRole().equals(UserRole.CAPTAIN) &&
+                !loggedUserManagementService.getUserD().getRole().equals(UserRole.VICECAPTAIN) &&
+                !loggedUserManagementService.getUserD().getId().equals(userId)) {
             throw new CustomException("Пользователь не имеет прав на удаление данного пользователя из команды", HttpStatus.FORBIDDEN);
         }
 
         Team team = getTeamDb(teamId);
-        User user = userService.getUserDb(userId);
+        UserD userD = userService.getUserDb(userId);
 
-        List<User> members = team.getUsers();
-        members.remove(user);
+        List<UserD> members = team.getUserDS();
+        members.remove(userD);
         teamRepo.save(team);
 
         return getMembers(teamId, page, perPage, sort, order);

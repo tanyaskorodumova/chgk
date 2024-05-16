@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -54,5 +54,5 @@ public class Tournament {
     LocalDateTime updatedAt;
 
     @OneToOne
-    User organizer;
+    UserD organizer;
 }

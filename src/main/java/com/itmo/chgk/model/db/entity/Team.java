@@ -1,6 +1,5 @@
 package com.itmo.chgk.model.db.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -13,9 +12,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -33,14 +31,14 @@ public class Team {
     String teamName;
 
     @OneToOne
-    User captain;
+    UserD captain;
 
     @OneToOne
-    User viceCaptain;
+    UserD viceCaptain;
 
     @OneToMany
     @JsonManagedReference(value = "team_users")
-    List<User> users;
+    List<UserD> userDS;
 
     Integer points;
 

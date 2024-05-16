@@ -2,7 +2,7 @@ package com.itmo.chgk.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itmo.chgk.exceptions.CustomException;
-import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.db.entity.UserD;
 import com.itmo.chgk.model.db.repository.UserRepo;
 import com.itmo.chgk.model.dto.request.UserInfoRequest;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
@@ -54,23 +54,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserDb(Long id) {
+    public UserD getUserDb(Long id) {
         return userRepo.findById(id).orElseThrow(() -> new CustomException("Пользователь не найден", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public UserInfoResponse getUser(Long id) {
-        User user = getUserDb(id);
-        UserInfoResponse userInfoResponse = mapper.convertValue(user, UserInfoResponse.class);
+        UserD userD = getUserDb(id);
+        UserInfoResponse userInfoResponse = mapper.convertValue(userD, UserInfoResponse.class);
         userInfoResponse.setPassword("Скрыто");
-        userInfoResponse.setBirthDay(user.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        userInfoResponse.setBirthDay(userD.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
         return userInfoResponse;
     }
 
     @Override
     public UserInfoResponse createUser(UserInfoRequest request) {
-        if (loggedUserManagementService.getUser() != null) {
+        if (loggedUserManagementService.getUserD() != null) {
             throw new CustomException("Для создания нового пользователя необходимо разлогиниться", HttpStatus.FORBIDDEN);
         }
 
@@ -100,16 +100,16 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        User user = mapper.convertValue(request, User.class);
-        user.setBirthDate(bDay);
-        user.setRole(UserRole.USER);
-        user.setStatus(CommonStatus.CREATED);
-        user.setCreatedAt(LocalDateTime.now());
+        UserD userD = mapper.convertValue(request, UserD.class);
+        userD.setBirthDate(bDay);
+        userD.setRole(UserRole.USER);
+        userD.setStatus(CommonStatus.CREATED);
+        userD.setCreatedAt(LocalDateTime.now());
 
-        user = userRepo.save(user);
-        UserInfoResponse response = mapper.convertValue(user, UserInfoResponse.class);
+        userD = userRepo.save(userD);
+        UserInfoResponse response = mapper.convertValue(userD, UserInfoResponse.class);
         response.setPassword("Скрыто");
-        response.setBirthDay(user.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        response.setBirthDay(userD.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
         return response;
 
@@ -117,34 +117,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponse updateUser(Long id, UserInfoRequest request) {
-        if (loggedUserManagementService.getUser() == null) {
+        if (loggedUserManagementService.getUserD() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUser().getId().equals(id)) {
+        } else if (!loggedUserManagementService.getUserD().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUserD().getId().equals(id)) {
             throw new CustomException("Пользователь не имеет прав на редактирование данного пользователя", HttpStatus.FORBIDDEN);
         }
 
-        User user = getUserDb(id);
+        UserD userD = getUserDb(id);
 
         if (request.getEmail() != null && userRepo.findByEmail(request.getEmail()).isEmpty()) {
-            user.setEmail(request.getEmail());
+            userD.setEmail(request.getEmail());
         }
         else if (userRepo.findByEmail(request.getEmail()).isPresent() &&
-                !user.equals(userRepo.findByEmail(request.getEmail()).get())) {
+                !userD.equals(userRepo.findByEmail(request.getEmail()).get())) {
             throw new CustomException("Данный email уже существует", HttpStatus.CONFLICT);
         }
 
         if (request.getLogin() != null && userRepo.findByLogin(request.getLogin()).isEmpty()) {
-            user.setLogin(request.getLogin());
+            userD.setLogin(request.getLogin());
         }
         else if (userRepo.findByLogin(request.getLogin()).isPresent() &&
-                !user.equals(userRepo.findByLogin(request.getLogin()).get())) {
+                !userD.equals(userRepo.findByLogin(request.getLogin()).get())) {
             throw new CustomException("Данный логин уже существует", HttpStatus.CONFLICT);
         }
 
-        user.setPassword(request.getPassword() == null ? user.getPassword() : request.getPassword());
-        user.setFirstName(request.getFirstName() == null? user.getFirstName() : request.getFirstName());
-        user.setLastName(request.getLastName() == null ? user.getLastName() : request.getLastName());
+        userD.setPassword(request.getPassword() == null ? userD.getPassword() : request.getPassword());
+        userD.setFirstName(request.getFirstName() == null? userD.getFirstName() : request.getFirstName());
+        userD.setLastName(request.getLastName() == null ? userD.getLastName() : request.getLastName());
 
         LocalDate bDay = null;
 
@@ -159,37 +159,37 @@ public class UserServiceImpl implements UserService {
                 throw new CustomException("Некорректная дата рождения", HttpStatus.BAD_REQUEST);
             }
         }
-        user.setBirthDate(bDay == null ? user.getBirthDate() : bDay);
+        userD.setBirthDate(bDay == null ? userD.getBirthDate() : bDay);
 
-        user.setStatus(CommonStatus.UPDATED);
-        user.setUpdatedAt(LocalDateTime.now());
+        userD.setStatus(CommonStatus.UPDATED);
+        userD.setUpdatedAt(LocalDateTime.now());
 
-        user = userRepo.save(user);
-        UserInfoResponse response = mapper.convertValue(user, UserInfoResponse.class);
+        userD = userRepo.save(userD);
+        UserInfoResponse response = mapper.convertValue(userD, UserInfoResponse.class);
         response.setPassword("Скрыто");
-        response.setBirthDay(user.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        response.setBirthDay(userD.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
         return response;
     }
 
     @Override
     public void deleteUser(Long id) {
-        if (loggedUserManagementService.getUser() == null) {
+        if (loggedUserManagementService.getUserD() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUser().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUser().getId().equals(id)) {
+        } else if (!loggedUserManagementService.getUserD().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUserD().getId().equals(id)) {
             throw new CustomException("Пользователь не имеет прав на удаление данного пользователя", HttpStatus.FORBIDDEN);
         }
 
-        User user = getUserDb(id);
-        user.setStatus(CommonStatus.DELETED);
-        user.setUpdatedAt(LocalDateTime.now());
-        userRepo.save(user);
+        UserD userD = getUserDb(id);
+        userD.setStatus(CommonStatus.DELETED);
+        userD.setUpdatedAt(LocalDateTime.now());
+        userRepo.save(userD);
     }
 
     public void setRole(Long id, UserRole role) {
-        User user = getUserDb(id);
-        user.setRole(role);
-        userRepo.save(user);
+        UserD userD = getUserDb(id);
+        userD.setRole(role);
+        userRepo.save(userD);
     }
 }

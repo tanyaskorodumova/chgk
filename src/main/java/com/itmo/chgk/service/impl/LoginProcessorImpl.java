@@ -2,7 +2,7 @@ package com.itmo.chgk.service.impl;
 
 import com.itmo.chgk.model.db.entity.Team;
 import com.itmo.chgk.model.db.entity.Tournament;
-import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.db.entity.UserD;
 import com.itmo.chgk.model.db.repository.TeamRepo;
 import com.itmo.chgk.model.db.repository.TournamentRepo;
 import com.itmo.chgk.model.db.repository.UserRepo;
@@ -34,19 +34,19 @@ public class LoginProcessorImpl implements LoginProcessor {
 
         boolean loggedIn = false;
 
-        User user = userRepo.findByLoginAndPassword(login, password);
+        UserD userD = userRepo.findByLoginAndPassword(login, password);
 
-        if (user != null) {
+        if (userD != null) {
             loggedIn = true;
-            loggedUserManagementService.setUser(user);
-            if(user.getRole().equals(UserRole.CAPTAIN)) {
-                Team team = teamRepo.findFirstByCaptain(user);
+            loggedUserManagementService.setUserD(userD);
+            if(userD.getRole().equals(UserRole.CAPTAIN)) {
+                Team team = teamRepo.findFirstByCaptain(userD);
                 loggedUserManagementService.setTeamId(team == null ? null : team.getId());
-            } else if (user.getRole().equals(UserRole.VICECAPTAIN)) {
-                Team team = teamRepo.findFirstByViceCaptain(user);
+            } else if (userD.getRole().equals(UserRole.VICECAPTAIN)) {
+                Team team = teamRepo.findFirstByViceCaptain(userD);
                 loggedUserManagementService.setTeamId(team == null ? null : team.getId());
-            } else if (user.getRole().equals(UserRole.ORGANIZER)) {
-                Tournament tournament = tournamentRepo.findFirstByOrganizer(user);
+            } else if (userD.getRole().equals(UserRole.ORGANIZER)) {
+                Tournament tournament = tournamentRepo.findFirstByOrganizer(userD);
                 loggedUserManagementService.setTournamentId(tournament == null ? null : tournament.getId());
             }
         }

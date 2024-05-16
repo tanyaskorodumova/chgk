@@ -15,7 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class User {
+public class UserD {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;

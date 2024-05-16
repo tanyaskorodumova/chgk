@@ -1,6 +1,6 @@
 package com.itmo.chgk.model.db.repository;
 
-import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.db.entity.UserD;
 import com.itmo.chgk.model.enums.CommonStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,14 +10,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface UserRepo  extends JpaRepository<User, Long> {
-    Page<User> findAllByStatusIsNot(Pageable pageable, CommonStatus status);
-    Optional<User> findByEmail(String email);
-    Optional<User> findByLogin(String login);
+public interface UserRepo  extends JpaRepository<UserD, Long> {
+    Page<UserD> findAllByStatusIsNot(Pageable pageable, CommonStatus status);
+    Optional<UserD> findByEmail(String email);
+    Optional<UserD> findByLogin(String login);
 
-    @Query("select u from User u where u.team.id = :teamId")
-    Page<User> findAllByTeam(@Param("teamId") Long teamId, Pageable pageable);
+    @Query("select u from UserD u where u.team.id = :teamId")
+    Page<UserD> findAllByTeam(@Param("teamId") Long teamId, Pageable pageable);
 
-    User findByLoginAndPassword(String login, String password);
+    UserD findByLoginAndPassword(String login, String password);
 
 }

@@ -10,8 +10,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import javax.validation.constraints.Future;
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 
 @Getter

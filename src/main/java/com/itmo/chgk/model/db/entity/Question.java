@@ -1,6 +1,5 @@
 package com.itmo.chgk.model.db.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -12,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
@@ -32,7 +31,7 @@ public class Question {
     QuestionComplexity complexity;
 
     @ManyToOne
-    User user;
+    UserD userD;
 
     QuestionStatus status;
 
