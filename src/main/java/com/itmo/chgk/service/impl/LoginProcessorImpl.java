@@ -2,7 +2,7 @@ package com.itmo.chgk.service.impl;
 
 import com.itmo.chgk.model.db.entity.Team;
 import com.itmo.chgk.model.db.entity.Tournament;
-import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.db.entity.UserDetail;
 import com.itmo.chgk.model.db.repository.TeamRepo;
 import com.itmo.chgk.model.db.repository.TournamentRepo;
 import com.itmo.chgk.model.db.repository.UserRepo;
@@ -34,19 +34,19 @@ public class LoginProcessorImpl implements LoginProcessor {
 
         boolean loggedIn = false;
 
-        User user = userRepo.findByLoginAndPassword(login, password);
+        UserDetail userDetail = userRepo.findByLoginAndPassword(login, password);
 
-        if (user != null) {
+        if (userDetail != null) {
             loggedIn = true;
-            loggedUserManagementService.setUser(user);
-            if(user.getRole().equals(UserRole.CAPTAIN)) {
-                Team team = teamRepo.findFirstByCaptain(user);
+            loggedUserManagementService.setUserDetail(userDetail);
+            if(userDetail.getRole().equals(UserRole.CAPTAIN)) {
+                Team team = teamRepo.findFirstByCaptain(userDetail);
                 loggedUserManagementService.setTeamId(team == null ? null : team.getId());
-            } else if (user.getRole().equals(UserRole.VICECAPTAIN)) {
-                Team team = teamRepo.findFirstByViceCaptain(user);
+            } else if (userDetail.getRole().equals(UserRole.VICECAPTAIN)) {
+                Team team = teamRepo.findFirstByViceCaptain(userDetail);
                 loggedUserManagementService.setTeamId(team == null ? null : team.getId());
-            } else if (user.getRole().equals(UserRole.ORGANIZER)) {
-                Tournament tournament = tournamentRepo.findFirstByOrganizer(user);
+            } else if (userDetail.getRole().equals(UserRole.ORGANIZER)) {
+                Tournament tournament = tournamentRepo.findFirstByOrganizer(userDetail);
                 loggedUserManagementService.setTournamentId(tournament == null ? null : tournament.getId());
             }
         }
