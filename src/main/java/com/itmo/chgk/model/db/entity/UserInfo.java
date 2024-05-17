@@ -9,7 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.itmo.chgk.model.enums.CommonStatus;
-import com.itmo.chgk.model.enums.UserRole;
+import com.itmo.chgk.model.enums.UserInfoRole;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,6 +61,6 @@ public class UserInfo {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     LocalDateTime updatedAt;
 
-    UserRole role;
+    UserInfoRole role;
 
 }

@@ -1,6 +1,6 @@
 package com.itmo.chgk.model.enums;
 
-public enum UserRole {
+public enum UserInfoRole {
     USER,
     CAPTAIN,
     VICECAPTAIN,

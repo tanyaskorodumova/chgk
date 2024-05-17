@@ -5,14 +5,14 @@ import com.itmo.chgk.exceptions.CustomException;
 import com.itmo.chgk.model.db.entity.Team;
 import com.itmo.chgk.model.db.entity.UserInfo;
 import com.itmo.chgk.model.db.repository.TeamRepo;
-import com.itmo.chgk.model.db.repository.UserRepo;
+import com.itmo.chgk.model.db.repository.UserInfoRepo;
 import com.itmo.chgk.model.dto.request.TeamInfoRequest;
 import com.itmo.chgk.model.dto.response.TeamInfoResponse;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
 import com.itmo.chgk.model.enums.CommonStatus;
-import com.itmo.chgk.model.enums.UserRole;
+import com.itmo.chgk.model.enums.UserInfoRole;
 import com.itmo.chgk.service.TeamService;
-import com.itmo.chgk.service.UserService;
+import com.itmo.chgk.service.UserInfoService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TeamServiceImpl implements TeamService {
     private final TeamRepo teamRepo;
-    private final UserRepo userRepo;
-    private final UserService userService;
+    private final UserInfoRepo userInfoRepo;
+    private final UserInfoService userInfoService;
 
     private final ObjectMapper mapper;
 
@@ -100,15 +100,15 @@ public class TeamServiceImpl implements TeamService {
 
         Team team = mapper.convertValue(request, Team.class);
 
-        UserInfo captain = userService.getUserDb(request.getCaptainId());
-        userService.setRole(captain.getId(), UserRole.CAPTAIN);
+        UserInfo captain = userInfoService.getUserDb(request.getCaptainId());
+        userInfoService.setRole(captain.getId(), UserInfoRole.CAPTAIN);
 //        loggedUserManagementService.setUserInfo(captain);
         team.setTeamName(request.getTeamName());
         team.setCaptain(captain);
 
         if (request.getViceCaptainId() != null) {
-            UserInfo viceCaptain = userService.getUserDb(request.getViceCaptainId());
-            userService.setRole(viceCaptain.getId(), UserRole.VICECAPTAIN);
+            UserInfo viceCaptain = userInfoService.getUserDb(request.getViceCaptainId());
+            userInfoService.setRole(viceCaptain.getId(), UserInfoRole.VICECAPTAIN);
             team.setViceCaptain(viceCaptain);
         }
 
@@ -149,8 +149,8 @@ public class TeamServiceImpl implements TeamService {
 //        }
 
         if (request.getViceCaptainId() != null) {
-            UserInfo viceCaptain = userService.getUserDb(request.getViceCaptainId());
-            userService.setRole(viceCaptain.getId(), UserRole.VICECAPTAIN);
+            UserInfo viceCaptain = userInfoService.getUserDb(request.getViceCaptainId());
+            userInfoService.setRole(viceCaptain.getId(), UserInfoRole.VICECAPTAIN);
             team.setViceCaptain(viceCaptain);
         }
 
@@ -198,13 +198,13 @@ public class TeamServiceImpl implements TeamService {
 //        }
 
         Team team = getTeamDb(teamId);
-        UserInfo userInfo = userService.getUserDb(userId);
+        UserInfo userInfo = userInfoService.getUserDb(userId);
 
         List<UserInfo> members = team.getUserInfos();
         members.add(userInfo);
         userInfo.setTeam(team);
         team = teamRepo.save(team);
-        userRepo.save(userInfo);
+        userInfoRepo.save(userInfo);
 
         return getMembers(teamId, page, perPage, sort, order);
     }
@@ -221,7 +221,7 @@ public class TeamServiceImpl implements TeamService {
 //        }
 
         Team team = getTeamDb(teamId);
-        UserInfo userInfo = userService.getUserDb(userId);
+        UserInfo userInfo = userInfoService.getUserDb(userId);
 
         List<UserInfo> members = team.getUserInfos();
         members.remove(userInfo);
@@ -235,10 +235,10 @@ public class TeamServiceImpl implements TeamService {
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
         Team team = getTeamDb(id);
 
-        List<UserInfoResponse> allUsers = userRepo.findAllByTeam(team.getId(), request)
+        List<UserInfoResponse> allUsers = userInfoRepo.findAllByTeam(team.getId(), request)
                 .getContent()
                 .stream()
-                .map(u -> userService.getUser(u.getId()))
+                .map(u -> userInfoService.getUser(u.getId()))
                 .collect(Collectors.toList());
 
         return new PageImpl<>(allUsers);

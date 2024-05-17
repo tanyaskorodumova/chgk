@@ -8,7 +8,6 @@ import com.itmo.chgk.model.dto.request.QuestionInfoRequest;
 import com.itmo.chgk.model.dto.request.QuestionPackRequest;
 import com.itmo.chgk.model.dto.response.QuestionInfoResponse;
 import com.itmo.chgk.model.enums.QuestionStatus;
-import com.itmo.chgk.model.enums.UserRole;
 import com.itmo.chgk.service.QuestionService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;

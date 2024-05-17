@@ -3,12 +3,12 @@ package com.itmo.chgk.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itmo.chgk.exceptions.CustomException;
 import com.itmo.chgk.model.db.entity.UserInfo;
-import com.itmo.chgk.model.db.repository.UserRepo;
+import com.itmo.chgk.model.db.repository.UserInfoRepo;
 import com.itmo.chgk.model.dto.request.UserInfoRequest;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
 import com.itmo.chgk.model.enums.CommonStatus;
-import com.itmo.chgk.model.enums.UserRole;
-import com.itmo.chgk.service.UserService;
+import com.itmo.chgk.model.enums.UserInfoRole;
+import com.itmo.chgk.service.UserInfoService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,16 +29,16 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserServiceImpl implements UserService {
+public class UserInfoServiceImpl implements UserInfoService {
     private final ObjectMapper mapper;
-    private final UserRepo userRepo;
+    private final UserInfoRepo userInfoRepo;
 
 
     @Override
     public Page<UserInfoResponse> getAllUsers(Integer page, Integer perPage, String sort, Sort.Direction order) {
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
 
-        List<UserInfoResponse> all = userRepo.findAllByStatusIsNot(request, CommonStatus.DELETED)
+        List<UserInfoResponse> all = userInfoRepo.findAllByStatusIsNot(request, CommonStatus.DELETED)
                 .getContent()
                 .stream()
                 .map(user -> {
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfo getUserDb(Long id) {
-        return userRepo.findById(id).orElseThrow(() -> new CustomException("Пользователь не найден", HttpStatus.NOT_FOUND));
+        return userInfoRepo.findById(id).orElseThrow(() -> new CustomException("Пользователь не найден", HttpStatus.NOT_FOUND));
     }
 
     @Override
@@ -73,11 +73,11 @@ public class UserServiceImpl implements UserService {
             throw new CustomException("Для создания нового пользователя необходимо разлогиниться", HttpStatus.FORBIDDEN);
         }
 
-        userRepo.findByEmail(request.getEmail())
+        userInfoRepo.findByEmail(request.getEmail())
                 .ifPresent(user -> {
                     throw new CustomException("Данный email уже существует", HttpStatus.CONFLICT);
                 });
-        userRepo.findByLogin(request.getLogin())
+        userInfoRepo.findByLogin(request.getLogin())
                 .ifPresent(user -> {
                     throw new CustomException("Данный логин уже существует", HttpStatus.CONFLICT);
                 });
@@ -101,11 +101,11 @@ public class UserServiceImpl implements UserService {
 
         UserInfo userInfo = mapper.convertValue(request, UserInfo.class);
         userInfo.setBirthDate(bDay);
-        userInfo.setRole(UserRole.USER);
+        userInfo.setRole(UserInfoRole.USER);
         userInfo.setStatus(CommonStatus.CREATED);
         userInfo.setCreatedAt(LocalDateTime.now());
 
-        userInfo = userRepo.save(userInfo);
+        userInfo = userInfoRepo.save(userInfo);
         UserInfoResponse response = mapper.convertValue(userInfo, UserInfoResponse.class);
         response.setPassword("Скрыто");
         response.setBirthDay(userInfo.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
@@ -124,19 +124,19 @@ public class UserServiceImpl implements UserService {
 
         UserInfo userInfo = getUserDb(id);
 
-        if (request.getEmail() != null && userRepo.findByEmail(request.getEmail()).isEmpty()) {
+        if (request.getEmail() != null && userInfoRepo.findByEmail(request.getEmail()).isEmpty()) {
             userInfo.setEmail(request.getEmail());
         }
-        else if (userRepo.findByEmail(request.getEmail()).isPresent() &&
-                !userInfo.equals(userRepo.findByEmail(request.getEmail()).get())) {
+        else if (userInfoRepo.findByEmail(request.getEmail()).isPresent() &&
+                !userInfo.equals(userInfoRepo.findByEmail(request.getEmail()).get())) {
             throw new CustomException("Данный email уже существует", HttpStatus.CONFLICT);
         }
 
-        if (request.getLogin() != null && userRepo.findByLogin(request.getLogin()).isEmpty()) {
+        if (request.getLogin() != null && userInfoRepo.findByLogin(request.getLogin()).isEmpty()) {
             userInfo.setLogin(request.getLogin());
         }
-        else if (userRepo.findByLogin(request.getLogin()).isPresent() &&
-                !userInfo.equals(userRepo.findByLogin(request.getLogin()).get())) {
+        else if (userInfoRepo.findByLogin(request.getLogin()).isPresent() &&
+                !userInfo.equals(userInfoRepo.findByLogin(request.getLogin()).get())) {
             throw new CustomException("Данный логин уже существует", HttpStatus.CONFLICT);
         }
 
@@ -162,7 +162,7 @@ public class UserServiceImpl implements UserService {
         userInfo.setStatus(CommonStatus.UPDATED);
         userInfo.setUpdatedAt(LocalDateTime.now());
 
-        userInfo = userRepo.save(userInfo);
+        userInfo = userInfoRepo.save(userInfo);
         UserInfoResponse response = mapper.convertValue(userInfo, UserInfoResponse.class);
         response.setPassword("Скрыто");
         response.setBirthDay(userInfo.getBirthDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
@@ -181,12 +181,12 @@ public class UserServiceImpl implements UserService {
         UserInfo userInfo = getUserDb(id);
         userInfo.setStatus(CommonStatus.DELETED);
         userInfo.setUpdatedAt(LocalDateTime.now());
-        userRepo.save(userInfo);
+        userInfoRepo.save(userInfo);
     }
 
-    public void setRole(Long id, UserRole role) {
+    public void setRole(Long id, UserInfoRole role) {
         UserInfo userInfo = getUserDb(id);
         userInfo.setRole(role);
-        userRepo.save(userInfo);
+        userInfoRepo.save(userInfo);
     }
 }
