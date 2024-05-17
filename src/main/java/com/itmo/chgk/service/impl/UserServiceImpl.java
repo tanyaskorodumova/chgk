@@ -8,7 +8,6 @@ import com.itmo.chgk.model.dto.request.UserInfoRequest;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
 import com.itmo.chgk.model.enums.CommonStatus;
 import com.itmo.chgk.model.enums.UserRole;
-import com.itmo.chgk.service.LoggedUserManagementService;
 import com.itmo.chgk.service.UserService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final ObjectMapper mapper;
     private final UserRepo userRepo;
-    private final LoggedUserManagementService loggedUserManagementService;
+
 
     @Override
     public Page<UserInfoResponse> getAllUsers(Integer page, Integer perPage, String sort, Sort.Direction order) {
@@ -70,7 +69,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponse createUser(UserInfoRequest request) {
-        if (loggedUserManagementService.getUserInfo() != null) {
+        if (false) {  // требуется проверка, что пользователь неавторизован
             throw new CustomException("Для создания нового пользователя необходимо разлогиниться", HttpStatus.FORBIDDEN);
         }
 
@@ -117,10 +116,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponse updateUser(Long id, UserInfoRequest request) {
-        if (loggedUserManagementService.getUserInfo() == null) {
+        if (false) {  // требуется проверка, что пользователь авторизован
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUserInfo().getId().equals(id)) {
+        } else if (false) {  // требуется проверка, что пользователь или Admin или id пользователя совпадает с id User, которого он изменяет
             throw new CustomException("Пользователь не имеет прав на редактирование данного пользователя", HttpStatus.FORBIDDEN);
         }
 
@@ -174,10 +172,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Long id) {
-        if (loggedUserManagementService.getUserInfo() == null) {
+        if (false) {  // требуется проверка, что пользователь авторизован
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUserInfo().getId().equals(id)) {
+        } else if (false) {  // требуется проверка, что пользователь ADMIN или что он удаляет свою страницу
             throw new CustomException("Пользователь не имеет прав на удаление данного пользователя", HttpStatus.FORBIDDEN);
         }
 

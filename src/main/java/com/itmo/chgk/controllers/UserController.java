@@ -4,7 +4,6 @@ import com.itmo.chgk.exceptions.CustomException;
 import com.itmo.chgk.model.dto.request.UserInfoRequest;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
 import com.itmo.chgk.model.enums.UserRole;
-import com.itmo.chgk.service.LoggedUserManagementService;
 import com.itmo.chgk.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final LoggedUserManagementService loggedUserManagementService;
+
 
     @GetMapping("/all")
     @Operation(summary = "Получение информации обо всех пользователях")
@@ -59,9 +58,9 @@ public class UserController {
     @PutMapping("/{id}/role")
     @Operation(summary = "Установление роли пользователя")
     public void setUserRole(@PathVariable Long id, @RequestParam UserRole role) {
-        if (loggedUserManagementService.getUserInfo() == null) {
+        if (false) {  // требуется проверка на факт авторизации
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN)) {
+        } else if (false) { // требуется проверка прав администратора
             throw new CustomException("Необходимы права администратора", HttpStatus.FORBIDDEN);
         }
         userService.setRole(id, role);

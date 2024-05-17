@@ -9,7 +9,6 @@ import com.itmo.chgk.model.dto.request.QuestionPackRequest;
 import com.itmo.chgk.model.dto.response.QuestionInfoResponse;
 import com.itmo.chgk.model.enums.QuestionStatus;
 import com.itmo.chgk.model.enums.UserRole;
-import com.itmo.chgk.service.LoggedUserManagementService;
 import com.itmo.chgk.service.QuestionService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +30,13 @@ import java.util.stream.Collectors;
 public class QuestionServiceImpl implements QuestionService {
     private final ObjectMapper mapper;
     private final QuestionRepo questionRepo;
-    private final LoggedUserManagementService loggedUserManagementService;
+//    private final LoggedUserManagementService loggedUserManagementService;
 
     @Override
     public Page<QuestionInfoResponse> getAllQuestions(Integer page, Integer perPage, String sort, Sort.Direction order) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        }
 
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
 
@@ -62,9 +61,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionInfoResponse getQuestion(Long id) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        }
 
         Question question = getQuestionDb(id);
         QuestionInfoResponse questionInfoResponse = mapper.convertValue(question, QuestionInfoResponse.class);
@@ -75,9 +74,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<QuestionInfoResponse> getQuestionPack(QuestionPackRequest request) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        }
 
         List<QuestionInfoResponse> questions = questionRepo.findByQuestionPackRequest(request.getMinComplexity() == null? 0 : request.getMinComplexity().ordinal(),
                 request.getMaxComplexity() == null ? 5 : request.getMaxComplexity().ordinal(),
@@ -96,9 +95,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionInfoResponse getAnswer(Long id) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        }
 
         Question question = getQuestionDb(id);
         return mapper.convertValue(question, QuestionInfoResponse.class);
@@ -106,9 +105,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionInfoResponse createQuestion(QuestionInfoRequest request) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        }
 
         if (request.getQuestion().isEmpty()) {
             throw new CustomException("Поле вопрос не может быть пустым", HttpStatus.BAD_REQUEST);
@@ -120,7 +119,7 @@ public class QuestionServiceImpl implements QuestionService {
         Question question = mapper.convertValue(request, Question.class);
         question.setStatus(QuestionStatus.NEW);
         question.setCreatedAt(LocalDateTime.now());
-        question.setUserInfo(loggedUserManagementService.getUserInfo());
+//        question.setUserInfo(loggedUserManagementService.getUserInfo());
         question = questionRepo.save(question);
 
         return mapper.convertValue(question, QuestionInfoResponse.class);
@@ -129,16 +128,16 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionInfoResponse updateQuestion(Long id, QuestionInfoRequest request) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        }
 
         Question question = getQuestionDb(id);
 
-        if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
-                !question.getUserInfo().getId().equals(loggedUserManagementService.getUserInfo().getId())) {
-            throw new CustomException("Пользователь не имеет прав на редактирование данного вопроса", HttpStatus.FORBIDDEN);
-        }
+//        if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
+//                !question.getUserInfo().getId().equals(loggedUserManagementService.getUserInfo().getId())) {
+//            throw new CustomException("Пользователь не имеет прав на редактирование данного вопроса", HttpStatus.FORBIDDEN);
+//        }
 
         question.setQuestion(request.getQuestion() == null ? question.getQuestion() : request.getQuestion());
         question.setAnswer(request.getAnswer() == null ? question.getAnswer() : request.getAnswer());
@@ -154,11 +153,11 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public Page<QuestionInfoResponse> getQuestionsToApprove(Integer page, Integer perPage, String sort, Sort.Direction order) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("Необходимо обладать правами администратора", HttpStatus.FORBIDDEN);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN)) {
+//            throw new CustomException("Необходимо обладать правами администратора", HttpStatus.FORBIDDEN);
+//        }
 
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
 
@@ -175,11 +174,11 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionInfoResponse approveQuestion(Long id, QuestionInfoRequest request, QuestionStatus status) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN)) {
-            throw new CustomException("Необходимо обладать правами администратора", HttpStatus.FORBIDDEN);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN)) {
+//            throw new CustomException("Необходимо обладать правами администратора", HttpStatus.FORBIDDEN);
+//        }
 
         Question question = getQuestionDb(id);
 
@@ -202,16 +201,16 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public void deleteQuestion(Long id) {
-        if (loggedUserManagementService.getUserInfo() == null) {
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        }
+//        if (loggedUserManagementService.getUserInfo() == null) {
+//            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
+//        }
 
         Question question = getQuestionDb(id);
 
-        if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
-                !question.getUserInfo().getId().equals(loggedUserManagementService.getUserInfo().getId())) {
-            throw new CustomException("Пользователь не имеет прав на удаление данного вопроса", HttpStatus.FORBIDDEN);
-        }
+//        if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
+//                !question.getUserInfo().getId().equals(loggedUserManagementService.getUserInfo().getId())) {
+//            throw new CustomException("Пользователь не имеет прав на удаление данного вопроса", HttpStatus.FORBIDDEN);
+//        }
 
         question.setStatus(QuestionStatus.DELETED);
         question.setUpdatedAt(LocalDateTime.now());

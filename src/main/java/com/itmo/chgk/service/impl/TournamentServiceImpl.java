@@ -7,7 +7,6 @@ import com.itmo.chgk.model.db.repository.*;
 import com.itmo.chgk.model.dto.request.TournamentInfoRequest;
 import com.itmo.chgk.model.dto.response.*;
 import com.itmo.chgk.model.enums.*;
-import com.itmo.chgk.service.LoggedUserManagementService;
 import com.itmo.chgk.service.TeamService;
 import com.itmo.chgk.service.TournamentService;
 import com.itmo.chgk.utils.PaginationUtil;
@@ -38,7 +37,6 @@ public class TournamentServiceImpl implements TournamentService {
     private final TeamRepo teamRepo;
     private final TournamentTableRepo tournamentTableRepo;
     private final TeamService teamService;
-    private final LoggedUserManagementService loggedUserManagementService;
 
     @Override
     public Page<TournamentInfoResponse> getAllTournaments(Integer page, Integer perPage, String sort, Sort.Direction order) {
@@ -66,10 +64,9 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentInfoResponse createTournament(TournamentInfoRequest request) {
-        if (loggedUserManagementService.getUserInfo() == null) {
+        if (false) {  // требуется проверка, что пользователь авторизован
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
-                    !loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER)) {
+        } else if (false) {  // требуется проверка, что пользователь ADMIN или ORGINIZER
             throw new CustomException("У пользователя нет прав на создание турнира", HttpStatus.FORBIDDEN);
         }
 
@@ -87,7 +84,7 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournament.setMinPoints(tournament.getMinPoints() == null ? 0 : tournament.getMinPoints());
         tournament.setStatus(TournamentStatus.PLANNED);
-        tournament.setOrganizer(loggedUserManagementService.getUserInfo());
+    //    tournament.setOrganizer(loggedUserManagementService.getUserInfo());  // требуется получение информации об имени этого пользователя(авторизованного)
         tournament.setCreatedAt(LocalDateTime.now());
 
         tournament = tournamentRepo.save(tournament);
@@ -96,13 +93,11 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentInfoResponse updateTournament(Long id, TournamentInfoRequest request) {
-        if (loggedUserManagementService.getUserInfo() == null) {
+        if (false) {  // Требуется проверка авторизации
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER)) {
+        } else if (false) {  // Требуется проверка, что пользователь ADMIN или ORGANIZER
             throw new CustomException("У пользователя нет прав на редактирование турнира", HttpStatus.FORBIDDEN);
-        } else if (loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER) &&
-                !loggedUserManagementService.getTournamentId().equals(id)) {
+        } else if (false) {  // Требуется проверка, что пользователь ORGANIZER этого турнира
             throw new CustomException("У пользователя нет прав на редактирование данного турнира", HttpStatus.FORBIDDEN);
         }
 
@@ -129,13 +124,11 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public void deleteTournament(Long id) {
-        if (loggedUserManagementService.getUserInfo() == null) {
+        if (false) {  // Требуется проверка авторизации
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER)) {
+        } else if (false) {  // Требуется проверка что пользователь ADMIN или ORGANIZER
             throw new CustomException("У пользователя нет прав на удаление турнира", HttpStatus.FORBIDDEN);
-        } else if (loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER) &&
-                !loggedUserManagementService.getTournamentId().equals(id)) {
+        } else if (false) {  // Требуется проверка, что пользователь ORGANIZER этого удаляемого турнира
             throw new CustomException("У пользователя нет прав на удаление данного турнира", HttpStatus.FORBIDDEN);
         }
 
