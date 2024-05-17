@@ -2,7 +2,7 @@ package com.itmo.chgk.service.impl;
 
 import com.itmo.chgk.model.db.entity.Team;
 import com.itmo.chgk.model.db.entity.Tournament;
-import com.itmo.chgk.model.db.entity.UserDetail;
+import com.itmo.chgk.model.db.entity.UserInfo;
 import com.itmo.chgk.model.db.repository.TeamRepo;
 import com.itmo.chgk.model.db.repository.TournamentRepo;
 import com.itmo.chgk.model.db.repository.UserRepo;
@@ -34,19 +34,19 @@ public class LoginProcessorImpl implements LoginProcessor {
 
         boolean loggedIn = false;
 
-        UserDetail userDetail = userRepo.findByLoginAndPassword(login, password);
+        UserInfo userInfo = userRepo.findByLoginAndPassword(login, password);
 
-        if (userDetail != null) {
+        if (userInfo != null) {
             loggedIn = true;
-            loggedUserManagementService.setUserDetail(userDetail);
-            if(userDetail.getRole().equals(UserRole.CAPTAIN)) {
-                Team team = teamRepo.findFirstByCaptain(userDetail);
+            loggedUserManagementService.setUserInfo(userInfo);
+            if(userInfo.getRole().equals(UserRole.CAPTAIN)) {
+                Team team = teamRepo.findFirstByCaptain(userInfo);
                 loggedUserManagementService.setTeamId(team == null ? null : team.getId());
-            } else if (userDetail.getRole().equals(UserRole.VICECAPTAIN)) {
-                Team team = teamRepo.findFirstByViceCaptain(userDetail);
+            } else if (userInfo.getRole().equals(UserRole.VICECAPTAIN)) {
+                Team team = teamRepo.findFirstByViceCaptain(userInfo);
                 loggedUserManagementService.setTeamId(team == null ? null : team.getId());
-            } else if (userDetail.getRole().equals(UserRole.ORGANIZER)) {
-                Tournament tournament = tournamentRepo.findFirstByOrganizer(userDetail);
+            } else if (userInfo.getRole().equals(UserRole.ORGANIZER)) {
+                Tournament tournament = tournamentRepo.findFirstByOrganizer(userInfo);
                 loggedUserManagementService.setTournamentId(tournament == null ? null : tournament.getId());
             }
         }

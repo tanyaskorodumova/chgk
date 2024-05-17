@@ -66,10 +66,10 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentInfoResponse createTournament(TournamentInfoRequest request) {
-        if (loggedUserManagementService.getUserDetail() == null) {
+        if (loggedUserManagementService.getUserInfo() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ADMIN) &&
-                    !loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ORGANIZER)) {
+        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
+                    !loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER)) {
             throw new CustomException("У пользователя нет прав на создание турнира", HttpStatus.FORBIDDEN);
         }
 
@@ -87,7 +87,7 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournament.setMinPoints(tournament.getMinPoints() == null ? 0 : tournament.getMinPoints());
         tournament.setStatus(TournamentStatus.PLANNED);
-        tournament.setOrganizer(loggedUserManagementService.getUserDetail());
+        tournament.setOrganizer(loggedUserManagementService.getUserInfo());
         tournament.setCreatedAt(LocalDateTime.now());
 
         tournament = tournamentRepo.save(tournament);
@@ -96,12 +96,12 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentInfoResponse updateTournament(Long id, TournamentInfoRequest request) {
-        if (loggedUserManagementService.getUserDetail() == null) {
+        if (loggedUserManagementService.getUserInfo() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ORGANIZER)) {
+        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER)) {
             throw new CustomException("У пользователя нет прав на редактирование турнира", HttpStatus.FORBIDDEN);
-        } else if (loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ORGANIZER) &&
+        } else if (loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(id)) {
             throw new CustomException("У пользователя нет прав на редактирование данного турнира", HttpStatus.FORBIDDEN);
         }
@@ -129,12 +129,12 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public void deleteTournament(Long id) {
-        if (loggedUserManagementService.getUserDetail() == null) {
+        if (loggedUserManagementService.getUserInfo() == null) {
             throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (!loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ADMIN) &&
-                !loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ORGANIZER)) {
+        } else if (!loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ADMIN) &&
+                !loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER)) {
             throw new CustomException("У пользователя нет прав на удаление турнира", HttpStatus.FORBIDDEN);
-        } else if (loggedUserManagementService.getUserDetail().getRole().equals(UserRole.ORGANIZER) &&
+        } else if (loggedUserManagementService.getUserInfo().getRole().equals(UserRole.ORGANIZER) &&
                 !loggedUserManagementService.getTournamentId().equals(id)) {
             throw new CustomException("У пользователя нет прав на удаление данного турнира", HttpStatus.FORBIDDEN);
         }
