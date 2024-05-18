@@ -1,4 +1,4 @@
-package com.itmo.chgk.security;
+package com.itmo.chgk.model.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;

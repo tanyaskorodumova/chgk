@@ -1,4 +1,4 @@
-package com.itmo.chgk.security;
+package com.itmo.chgk.model.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

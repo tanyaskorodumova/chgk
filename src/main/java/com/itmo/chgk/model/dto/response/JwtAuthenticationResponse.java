@@ -1,4 +1,4 @@
-package com.itmo.chgk.security;
+package com.itmo.chgk.model.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

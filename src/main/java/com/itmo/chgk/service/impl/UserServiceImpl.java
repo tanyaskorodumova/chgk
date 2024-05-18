@@ -1,6 +1,14 @@
-package com.itmo.chgk.security;
+package com.itmo.chgk.service.impl;
 
 import com.itmo.chgk.exceptions.CustomException;
+import com.itmo.chgk.model.db.entity.Authority;
+import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.db.repository.AuthorityRepository;
+import com.itmo.chgk.model.db.repository.UserRepository;
+import com.itmo.chgk.model.dto.request.UserRequest;
+import com.itmo.chgk.model.dto.response.JwtAuthenticationResponse;
+import com.itmo.chgk.service.UserService;
+import com.itmo.chgk.utils.UserConverter;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
