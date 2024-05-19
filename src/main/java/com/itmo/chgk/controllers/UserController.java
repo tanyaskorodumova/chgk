@@ -1,5 +1,9 @@
-package com.itmo.chgk.security;
+package com.itmo.chgk.controllers;
 
+import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.dto.request.UserRequest;
+import com.itmo.chgk.model.dto.response.JwtAuthenticationResponse;
+import com.itmo.chgk.service.UserService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -11,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-
         UserService userService;
 
         @GetMapping("/all")
@@ -36,6 +39,6 @@ public class UserController {
 
         @DeleteMapping("/{user}")
         public String deleteUser(@PathVariable String user){
-            return userService.delete(user);
+            return userService.deleteUser(user);
         }
 }

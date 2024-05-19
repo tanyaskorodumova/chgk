@@ -1,4 +1,8 @@
-package com.itmo.chgk.security;
+package com.itmo.chgk.utils;
+
+import com.itmo.chgk.model.db.entity.Authority;
+import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.dto.request.UserRequest;
 
 import java.util.List;
 

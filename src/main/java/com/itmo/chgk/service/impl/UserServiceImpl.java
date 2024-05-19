@@ -1,8 +1,17 @@
-package com.itmo.chgk.security;
+package com.itmo.chgk.service.impl;
 
 import com.itmo.chgk.exceptions.CustomException;
+import com.itmo.chgk.model.db.entity.Authority;
+import com.itmo.chgk.model.db.entity.User;
+import com.itmo.chgk.model.db.repository.AuthorityRepository;
+import com.itmo.chgk.model.db.repository.UserRepository;
+import com.itmo.chgk.model.dto.request.UserRequest;
+import com.itmo.chgk.model.dto.response.JwtAuthenticationResponse;
+import com.itmo.chgk.service.UserService;
+import com.itmo.chgk.utils.UserConverter;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
@@ -12,16 +21,17 @@ import java.util.Optional;
 @AllArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
+
     private final UserRepository userRepository;
     private final AuthorityRepository authorityRepository;
-//    private final PasswordEncoder encoder;
+    private final PasswordEncoder encoder;
+    private final JWTService jwtService;
 
 
     @Transactional
     @Override
     public List<User> getAllUsers() {
-        List <User> list = userRepository.findAll();
-        return list;
+        return userRepository.findAll();
     }
 
 
@@ -44,21 +54,21 @@ public class UserServiceImpl implements UserService {
     public JwtAuthenticationResponse createUser(UserRequest request) {
         Optional<User> OpEmp = userRepository.findById(request.getUsername());
         if(OpEmp.isPresent())
-            throw new CustomException("Есть такой пользователь", HttpStatus.BAD_REQUEST);
+            throw new CustomException("Пользователь с таким логином уже зарегистрирован", HttpStatus.BAD_REQUEST);
 
         User user = UserConverter.convertRequestToUser(request);
         String pass = user.getPassword();
-//        user.setPassword(encoder.encode(pass));
+        user.setPassword(encoder.encode(pass));
 
         userRepository.save(user);
 
         List <Authority> list = user.getAuthorities();
         authorityRepository.saveAll(list);
 
-//        String jwt = jwtService.generateToken(request.getUsername());
-//        String jwtR = jwtService.generateRToken(request.getUsername());
+        String jwt = jwtService.generateToken(request.getUsername());
+        String jwtR = jwtService.generateRToken(request.getUsername());
 
-        return new JwtAuthenticationResponse("Ф", "Й");
+        return new JwtAuthenticationResponse(jwt, jwtR);
     }
 
 
@@ -69,11 +79,11 @@ public class UserServiceImpl implements UserService {
 
         String pass = request.getPassword();
             if(pass.isEmpty()) {
-                throw new CustomException("Нельзя пустой пароль", HttpStatus.BAD_REQUEST);
+                throw new CustomException("Пустой пароль", HttpStatus.BAD_REQUEST);
             }
 
-//        String CodPass = encoder.encode(pass);
-        oldUser.setPassword(pass);
+        String CodPass = encoder.encode(pass);
+        oldUser.setPassword(CodPass);
 
         authorityRepository.deleteAllByUsername(oldUser);
         authorityRepository.flush();
@@ -94,10 +104,9 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public String delete(String user) {
+    public String deleteUser(String user) {
         User oldUser = getUser(user);
         authorityRepository.deleteAll(oldUser.getAuthorities());
-
         userRepository.delete(getUser(user));
         return ("Пользователь " + user + " удален");
     }
