@@ -15,7 +15,7 @@ import jakarta.validation.constraints.NotEmpty;
 public class TeamInfoRequest {
     String teamName;
 
-    Long captainId;
+    long captainId;
 
-    Long viceCaptainId;
+    long viceCaptainId;
 }

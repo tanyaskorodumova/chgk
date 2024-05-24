@@ -3,6 +3,8 @@ package com.itmo.chgk.service;
 import com.itmo.chgk.model.dto.response.JwtAuthenticationResponse;
 import com.itmo.chgk.model.db.entity.User;
 import com.itmo.chgk.model.dto.request.UserRequest;
+import org.springframework.web.bind.annotation.PathVariable;
+
 import java.util.List;
 
 public interface UserService {
@@ -11,4 +13,7 @@ public interface UserService {
     JwtAuthenticationResponse createUser(UserRequest request);
     User updateUser(UserRequest request);
     String deleteUser(String user);
+    void updateAuthority (String username, List <String> newAuthority);
+    void addAuthority (String username, List <String> newAuthority);
+    void deleteAuthority (String username, String delAuthority);
 }

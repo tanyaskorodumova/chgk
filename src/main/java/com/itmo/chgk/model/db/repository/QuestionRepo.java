@@ -30,7 +30,7 @@ public interface QuestionRepo  extends JpaRepository<Question, Long> {
             "where gp.participant_id in (select distinct gpun.participant_id from game_participants gpun where gpun.game_id = :gameId and gpun.status <> 2)) " +
             ", old_questions as (select distinct question_id from game_questions where game_id in (select * from old_games)) " +
             "select * from questions where id not in (select * from old_questions) and complexity >= :minComplexity and complexity <= :maxComplexity " +
-            "and status = 2 and coalesce(user_id, 0) not in (select distinct gpun.participant_id from game_participants gpun where gpun.game_id = :gameId) " +
+            "and status = 2 and coalesce(user_info_id, 0) not in (select distinct gpun.participant_id from game_participants gpun where gpun.game_id = :gameId) " +
             "order by random() limit :number")
     List<Question> findGamePack(@Param("gameId") Long gameId,
                                 @Param("minComplexity") Integer minComplexity,

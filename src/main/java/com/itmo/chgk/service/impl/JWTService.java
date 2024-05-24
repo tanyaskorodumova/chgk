@@ -5,6 +5,7 @@ import com.itmo.chgk.model.db.entity.User;
 import com.itmo.chgk.model.db.repository.UserRepository;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import java.util.Date;
@@ -15,7 +16,9 @@ import java.util.function.Function;
 @Component
 public class JWTService {
     private final UserRepository repository;
-    private String jwtSigningKey = "ArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtem";
+    @Value("${jwt.signing_key}")
+    public String jwtSigningKey;
+    //= "ArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtem";
 
 // 1. Методы генерации токена
     // метод генерирует токен

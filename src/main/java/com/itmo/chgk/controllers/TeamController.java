@@ -54,21 +54,21 @@ public class TeamController {
 
     @PostMapping("/{teamId}/setMember/{userInfoId}")
     @Operation(summary = "Добавление участника команды")
-    public Page<UserInfoResponse> setMember(@PathVariable Long teamId, @PathVariable Long userId,
+    public Page<UserInfoResponse> setMember(@PathVariable Long teamId, @PathVariable Long userInfoId,
                                             @RequestParam(defaultValue = "1") Integer page,
                                             @RequestParam(defaultValue = "10") Integer perPage)
     {
-        return teamService.setMember(teamId, userId, page, perPage, null, null);
+        return teamService.setMember(teamId, userInfoId, page, perPage, null, null);
     }
 
     @DeleteMapping("/{teamId}/deleteMember/{userInfoId}")
     @Operation(summary = "Удаление участника из команды")
-    public Page<UserInfoResponse> deleteMember(@PathVariable Long teamId, @PathVariable Long userId,
+    public Page<UserInfoResponse> deleteMember(@PathVariable Long teamId, @PathVariable Long userInfoId,
                                             @RequestParam(defaultValue = "1") Integer page,
                                             @RequestParam(defaultValue = "10") Integer perPage,
                                             @RequestParam(defaultValue = "login") String sort,
                                             @RequestParam(defaultValue = "ASC") Sort.Direction order) {
-        return teamService.deleteMember(teamId, userId, page, perPage, sort, order);
+        return teamService.deleteMember(teamId, userInfoId, page, perPage, sort, order);
     }
 
     @GetMapping("/{id}/members")

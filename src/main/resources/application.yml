@@ -16,3 +16,5 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+jwt:
+  signing_key: ArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtem

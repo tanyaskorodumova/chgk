@@ -36,8 +36,8 @@ public class Team {
     @OneToOne
     UserInfo viceCaptain;
 
-    @OneToMany
     @JsonManagedReference(value = "team_users")
+    @OneToMany(mappedBy = "team")
     List<UserInfo> userInfos;
 
     Integer points;

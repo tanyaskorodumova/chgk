@@ -7,8 +7,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -17,7 +21,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name="users")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @Column(name="username")
@@ -38,8 +42,30 @@ public class User {
         authorities.add(auth);
     }
 
+    public List<String> getAuthoritiesString (){
+        return authorities
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+    }
+
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return enabled;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return enabled;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return enabled;
     }
 }

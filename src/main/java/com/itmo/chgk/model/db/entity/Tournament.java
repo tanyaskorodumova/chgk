@@ -37,7 +37,7 @@ public class Tournament {
     @Column(name = "min_points")
     Integer minPoints;
 
-    @OneToMany
+    @OneToMany(mappedBy = "tournament")
     @JsonManagedReference(value = "tournament_games")
     List<Game> games;
 

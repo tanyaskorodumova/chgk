@@ -17,12 +17,17 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,9 +74,6 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Override
     public UserInfoResponse createUser(UserInfoRequest request) {
-        if (false) {  // требуется проверка, что пользователь неавторизован
-            throw new CustomException("Для создания нового пользователя необходимо разлогиниться", HttpStatus.FORBIDDEN);
-        }
 
         userInfoRepo.findByEmail(request.getEmail())
                 .ifPresent(user -> {
@@ -116,13 +118,20 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Override
     public UserInfoResponse updateUser(Long id, UserInfoRequest request) {
-        if (false) {  // требуется проверка, что пользователь авторизован
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (false) {  // требуется проверка, что пользователь или Admin или id пользователя совпадает с id User, которого он изменяет
+        UserInfo userInfo = getUserDb(id);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails user = (UserDetails) authentication.getPrincipal();
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        List<String> listAuthorities = authorities
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!user.getUsername().equals(userInfo.getLogin()) && !listAuthorities.contains("ROLE_ADMIN")) {
             throw new CustomException("Пользователь не имеет прав на редактирование данного пользователя", HttpStatus.FORBIDDEN);
         }
 
-        UserInfo userInfo = getUserDb(id);
 
         if (request.getEmail() != null && userInfoRepo.findByEmail(request.getEmail()).isEmpty()) {
             userInfo.setEmail(request.getEmail());
@@ -172,13 +181,20 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Override
     public void deleteUser(Long id) {
-        if (false) {  // требуется проверка, что пользователь авторизован
-            throw new CustomException("Необходимо авторизоваться", HttpStatus.UNAUTHORIZED);
-        } else if (false) {  // требуется проверка, что пользователь ADMIN или что он удаляет свою страницу
+        UserInfo userInfo = getUserDb(id);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails user = (UserDetails) authentication.getPrincipal();
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        List<String> listAuthorities = authorities
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        if (!user.getUsername().equals(userInfo.getLogin()) && !listAuthorities.contains("ROLE_ADMIN")) {
             throw new CustomException("Пользователь не имеет прав на удаление данного пользователя", HttpStatus.FORBIDDEN);
         }
 
-        UserInfo userInfo = getUserDb(id);
         userInfo.setStatus(CommonStatus.DELETED);
         userInfo.setUpdatedAt(LocalDateTime.now());
         userInfoRepo.save(userInfo);

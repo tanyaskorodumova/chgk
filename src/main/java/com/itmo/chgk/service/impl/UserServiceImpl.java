@@ -110,4 +110,63 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(getUser(user));
         return ("Пользователь " + user + " удален");
     }
+
+    @Transactional
+    public void updateAuthority (String username, List <String> newAuthority){
+        User user = getUser(username);
+
+        authorityRepository.deleteAllByUsername(user);
+        authorityRepository.flush();
+        user.setAuthorities(new ArrayList<>());
+
+        userRepository.save(user);
+
+        for(String str: newAuthority){
+            Authority auth = new Authority(str);
+            user.addAuthority(auth);
+            auth.setUsername(user);
+            authorityRepository.save(auth);
+        }
+
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void addAuthority (String username, List <String> newAuthority){
+        User user = getUser(username);
+        List <String> userAuthorities = user.getAuthoritiesString();
+
+        for(String str: newAuthority){
+            if (!userAuthorities.contains(str)){
+                Authority auth = new Authority(str);
+                user.addAuthority(auth);
+                auth.setUsername(user);
+                authorityRepository.save(auth);
+            }
+        }
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteAuthority (String username, String delAuthority){
+        User user = getUser(username);
+        List<Authority> list = user.getAuthorities();
+        int number = -1;
+
+
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getAuthority().equals(delAuthority)) {
+                number = i;
+                break;
+            }
+        }
+
+        if (number == -1)
+            return;
+
+        Authority delAuth = list.get(number);
+        authorityRepository.delete(delAuth);
+        list.remove(number);
+        userRepository.save(user);
+    }
 }
