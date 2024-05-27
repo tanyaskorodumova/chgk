@@ -1,5 +1,6 @@
 package com.itmo.chgk.model.db.repository;
 
+import com.itmo.chgk.model.db.entity.User;
 import com.itmo.chgk.model.db.entity.UserInfo;
 import com.itmo.chgk.model.enums.CommonStatus;
 import org.springframework.data.domain.Page;
@@ -11,13 +12,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface UserInfoRepo extends JpaRepository<UserInfo, Long> {
-    Page<UserInfo> findAllByStatusIsNot(Pageable pageable, CommonStatus status);
     Optional<UserInfo> findByEmail(String email);
-    Optional<UserInfo> findByLogin(String login);
+    Optional<UserInfo> findByLogin(User user);
 
     @Query("select u from UserInfo u where u.team.id = :teamId")
     Page<UserInfo> findAllByTeam(@Param("teamId") Long teamId, Pageable pageable);
-
-    UserInfo findByLoginAndPassword(String login, String password);
-
 }

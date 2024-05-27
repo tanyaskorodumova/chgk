@@ -2,9 +2,11 @@ package com.itmo.chgk.service.impl;
 
 import com.itmo.chgk.exceptions.CustomException;
 import com.itmo.chgk.model.db.entity.User;
-import com.itmo.chgk.model.db.repository.UserRepository;
-import com.itmo.chgk.model.dto.request.SignInRequest;
+import com.itmo.chgk.model.db.repository.UserRepo;
+import com.itmo.chgk.model.dto.request.UserRequest;
 import com.itmo.chgk.model.dto.response.JwtAuthenticationResponse;
+import com.itmo.chgk.service.AuthenticationService;
+import com.itmo.chgk.service.JWTService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,14 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final UserRepository repository;
+    private final UserRepo repository;
 
 
-    public JwtAuthenticationResponse signIn(SignInRequest request) throws CustomException {
+    public JwtAuthenticationResponse signIn(UserRequest request) throws CustomException {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                     request.getUsername(),

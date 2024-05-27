@@ -1,8 +1,8 @@
 package com.itmo.chgk.security;
 
 import com.itmo.chgk.model.db.entity.User;
-import com.itmo.chgk.model.db.repository.UserRepository;
-import com.itmo.chgk.service.impl.JWTService;
+import com.itmo.chgk.model.db.repository.UserRepo;
+import com.itmo.chgk.service.JWTService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +20,7 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
-    private final UserRepository repository;
+    private final UserRepo repository;
 
 
     @Override

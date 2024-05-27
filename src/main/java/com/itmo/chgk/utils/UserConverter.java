@@ -11,12 +11,12 @@ public class UserConverter {
         User user = new User(request.getUsername(), request.getPassword());
         user.setEnabled(true);
 
-        List<String> list = request.getAuthorities();
-        for(String str:list){
-            Authority auth = new Authority(str);
-            user.addAuthority(auth);
-            auth.setUsername(user);
-        }
+//        List<String> list = request.getAuthorities();
+//        for(String str:list){
+//            Authority auth = new Authority(str);
+//            user.addAuthority(auth);
+//            auth.setUsername(user);
+//        }
 
         return user;
     }

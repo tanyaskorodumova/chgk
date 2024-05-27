@@ -10,17 +10,19 @@ import jakarta.persistence.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "tournament_table")
+@Table(name = "tournament_table",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"tournament_id", "team_id"})
+)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TournamentTable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToOne
+    @ManyToOne
     Tournament tournament;
 
-    @OneToOne
+    @ManyToOne
     Team team;
 
     Integer points;

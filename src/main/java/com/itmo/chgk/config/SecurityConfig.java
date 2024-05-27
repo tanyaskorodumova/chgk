@@ -18,7 +18,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import javax.sql.DataSource;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -28,7 +30,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @AllArgsConstructor
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = false)
 public class SecurityConfig {
 
     DataSource dataSource;
@@ -52,16 +53,17 @@ public class SecurityConfig {
         return http
             .authorizeHttpRequests(
                 authorize -> authorize
-                    //user_info
-                    .requestMatchers(HttpMethod.PUT, "/userInfo/*/role").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/userInfo/**").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/userInfo/new").anonymous()
-                    .requestMatchers("/userInfo/**").authenticated()
+                    .requestMatchers("/auth/**").anonymous()
 
-//                        .requestMatchers(HttpMethod.PUT, "/userInfo/role/**").hasRole("ADMIN")
-//                    .requestMatchers(HttpMethod.PUT, "/userInfo/**").authenticated()
-//                    .requestMatchers(HttpMethod.DELETE, "/userInfo/**").authenticated()
-//                    .requestMatchers(HttpMethod.POST, "/userInfo/new").anonymous()
+                    // users
+                    .requestMatchers(HttpMethod.GET, "/users/all").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/users/new").anonymous()
+                    .requestMatchers(HttpMethod.PUT, "/users/password").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
+                    .requestMatchers("/users/**").hasRole("ADMIN")
+
+                    //user_info
+                    .requestMatchers("/userInfo/**").authenticated()
 
                     //tournament
                     .requestMatchers(HttpMethod.GET, "/tournaments/**").permitAll()
@@ -86,11 +88,6 @@ public class SecurityConfig {
                     .requestMatchers("/games/*/results/final").permitAll()
                     .requestMatchers("/games/**").hasAnyRole("ORGANIZER", "ADMIN")
 
-
-                    .requestMatchers("/users/login6").hasRole("ADMIN")
-                    .requestMatchers("/users/login7").hasRole("USER")
-                    .requestMatchers("/users/login8").authenticated()
-                    .requestMatchers("/users/login9").permitAll()
                     .anyRequest().permitAll()
             )
             .csrf(AbstractHttpConfigurer::disable)

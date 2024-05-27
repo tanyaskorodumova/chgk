@@ -10,17 +10,19 @@ import jakarta.persistence.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "game_questions")
+@Table(name = "game_questions",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"game_id", "question_id"})
+)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GameQuestion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToOne
+    @ManyToOne
     Game game;
 
-    @OneToOne
+    @ManyToOne
     Question question;
 
     Integer round;

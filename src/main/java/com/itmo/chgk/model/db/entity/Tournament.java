@@ -26,7 +26,7 @@ public class Tournament {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(name = "tourn_name")
+    @Column(name = "tourn_name", unique = true)
     String tournName;
 
     TournamentLevel level;
@@ -53,6 +53,6 @@ public class Tournament {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     LocalDateTime updatedAt;
 
-    @OneToOne
+    @ManyToOne
     UserInfo organizer;
 }

@@ -33,8 +33,9 @@ public class User implements UserDetails {
     @Column(name="enabled")
     private boolean enabled;
 
-    //   @JsonManagedReference
-    //    @JsonIgnore
+    @OneToOne(cascade = CascadeType.ALL, mappedBy="login", fetch = FetchType.EAGER)
+    private UserInfo userInfo;
+
     @OneToMany(mappedBy="username", fetch = FetchType.EAGER)
     private List <Authority> authorities = new ArrayList<Authority>();
 

@@ -1,8 +1,10 @@
 package com.itmo.chgk.controllers;
 
-import com.itmo.chgk.model.dto.request.SignInRequest;
+
+import com.itmo.chgk.model.dto.request.UserRequest;
 import com.itmo.chgk.model.dto.response.JwtAuthenticationResponse;
-import com.itmo.chgk.service.impl.AuthenticationService;
+import com.itmo.chgk.service.AuthenticationService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,17 +13,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/auth")
 @AllArgsConstructor
 public class AuthenticationController {
     AuthenticationService authService;
 
-    @PostMapping("users/login")
-    public JwtAuthenticationResponse login(@RequestBody SignInRequest request){
+    @PostMapping("/login")
+    @Operation(summary = "Вход пользователя в систему")
+    public JwtAuthenticationResponse login(@RequestBody UserRequest request){
         return authService.signIn(request);
     }
 
-    @PostMapping("users/refresh")
+    @PostMapping("/refresh")
+    @Operation(summary = "Получение нового access токена")
     public JwtAuthenticationResponse refresh(HttpServletRequest request){
         return authService.refreshToken(request);
     }

@@ -14,4 +14,12 @@ public interface TeamRepo extends JpaRepository<Team, Long> {
 
     Team findFirstByViceCaptain(UserInfo viceCaptain);
 
+    Team findFirstByTeamName(String teamName);
+
+    boolean existsByTeamName(String teamName);
+
+    boolean existsByCaptain(UserInfo captain);
+
+    boolean existsByViceCaptain(UserInfo viceCaptain);
+
 }

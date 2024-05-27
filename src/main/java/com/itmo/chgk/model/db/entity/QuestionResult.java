@@ -15,17 +15,19 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "question_results")
+@Table(name = "question_results",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"question_id", "team_id"})
+)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class QuestionResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToOne
+    @ManyToOne
     GameQuestion question;
 
-    @OneToOne
+    @ManyToOne
     Team team;
 
     @Column(name = "is_correct")

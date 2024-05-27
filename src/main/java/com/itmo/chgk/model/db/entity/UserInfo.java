@@ -12,6 +12,7 @@ import com.itmo.chgk.model.enums.CommonStatus;
 import com.itmo.chgk.model.enums.UserInfoRole;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "user_info")
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserInfo {
@@ -31,8 +33,12 @@ public class UserInfo {
     Long id;
 
     String email;
-    String login;
-    String password;
+
+
+    @JsonBackReference
+    @OneToOne
+    @JoinColumn(name = "login")
+    User login;
 
     @Column(name = "first_name")
     String firstName;
@@ -49,8 +55,6 @@ public class UserInfo {
     @JsonBackReference(value = "team_users")
     Team team;
 
-    CommonStatus status;
-
     @Column(name = "created_at")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -61,6 +65,12 @@ public class UserInfo {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     LocalDateTime updatedAt;
 
-    UserInfoRole role;
-
+    public UserInfo(String email, User login, String firstName, String lastName, LocalDate birthDate, LocalDateTime createdAt) {
+        this.email = email;
+        this.login = login;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.birthDate = birthDate;
+        this.createdAt = createdAt;
+    }
 }

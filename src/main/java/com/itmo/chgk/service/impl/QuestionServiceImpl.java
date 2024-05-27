@@ -5,7 +5,7 @@ import com.itmo.chgk.exceptions.CustomException;
 import com.itmo.chgk.model.db.entity.Question;
 import com.itmo.chgk.model.db.entity.UserInfo;
 import com.itmo.chgk.model.db.repository.QuestionRepo;
-import com.itmo.chgk.model.db.repository.UserInfoRepo;
+import com.itmo.chgk.model.db.repository.UserRepo;
 import com.itmo.chgk.model.dto.request.QuestionInfoRequest;
 import com.itmo.chgk.model.dto.request.QuestionPackRequest;
 import com.itmo.chgk.model.dto.response.QuestionInfoResponse;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class QuestionServiceImpl implements QuestionService {
     private final ObjectMapper mapper;
     private final QuestionRepo questionRepo;
-    private final UserInfoRepo userInfoRepo;
+    private final UserRepo userRepo;
 
     @Override
     public Page<QuestionInfoResponse> getAllQuestions(Integer page, Integer perPage, String sort, Sort.Direction order) {
@@ -109,7 +109,7 @@ public class QuestionServiceImpl implements QuestionService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails user = (UserDetails) authentication.getPrincipal();
-        UserInfo UI = userInfoRepo.findByLogin(user.getUsername()).get();
+        UserInfo UI = userRepo.findById(user.getUsername()).get().getUserInfo();
         question.setUserInfo(UI);
 
         question = questionRepo.save(question);
@@ -134,7 +134,7 @@ public class QuestionServiceImpl implements QuestionService {
 
         if (!listAuthorities.contains("ROLE_ADMIN")) {
             UserInfo questionMaker = question.getUserInfo();
-            if (!questionMaker.getLogin().equals(userName)){
+            if (!questionMaker.getLogin().getUsername().equals(userName)){
                 throw new CustomException("Пользователь не имеет прав на изменение данного вопроса", HttpStatus.FORBIDDEN);
             }
         }
@@ -202,7 +202,7 @@ public class QuestionServiceImpl implements QuestionService {
 
         if (!listAuthorities.contains("ROLE_ADMIN")) {
             UserInfo questionMaker = question.getUserInfo();
-            if (!questionMaker.getLogin().equals(userName)){
+            if (!questionMaker.getLogin().getUsername().equals(userName)){
                 throw new CustomException("Пользователь не имеет прав на изменение данного вопроса", HttpStatus.FORBIDDEN);
             }
         }

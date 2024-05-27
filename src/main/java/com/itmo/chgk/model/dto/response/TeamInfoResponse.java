@@ -13,8 +13,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TeamInfoResponse extends TeamInfoRequest {
+public class TeamInfoResponse {
     Long id;
+    String teamName;
     UserInfoResponse captain;
     UserInfoResponse viceCaptain;
     Integer points;

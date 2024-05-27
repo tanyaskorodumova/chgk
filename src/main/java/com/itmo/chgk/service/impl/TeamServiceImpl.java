@@ -2,23 +2,23 @@ package com.itmo.chgk.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itmo.chgk.exceptions.CustomException;
-import com.itmo.chgk.model.db.entity.Authority;
 import com.itmo.chgk.model.db.entity.Team;
 import com.itmo.chgk.model.db.entity.User;
 import com.itmo.chgk.model.db.entity.UserInfo;
 import com.itmo.chgk.model.db.repository.TeamRepo;
 import com.itmo.chgk.model.db.repository.UserInfoRepo;
+import com.itmo.chgk.model.db.repository.UserRepo;
 import com.itmo.chgk.model.dto.request.TeamInfoRequest;
 import com.itmo.chgk.model.dto.response.TeamInfoResponse;
 import com.itmo.chgk.model.dto.response.UserInfoResponse;
 import com.itmo.chgk.model.enums.CommonStatus;
-import com.itmo.chgk.model.enums.UserInfoRole;
 import com.itmo.chgk.service.TeamService;
 import com.itmo.chgk.service.UserInfoService;
 import com.itmo.chgk.service.UserService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.postgresql.util.PSQLException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +31,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 public class TeamServiceImpl implements TeamService {
     private final TeamRepo teamRepo;
     private final UserInfoRepo userInfoRepo;
+    private final UserRepo userRepo;
     private final UserInfoService userInfoService;
     private final UserService userService;
     private final ObjectMapper mapper;
@@ -55,11 +57,7 @@ public class TeamServiceImpl implements TeamService {
                 .map(team -> {
                     TeamInfoResponse response = mapper.convertValue(team, TeamInfoResponse.class);
                     UserInfoResponse captain = mapper.convertValue(team.getCaptain(), UserInfoResponse.class);
-                    captain.setPassword("Скрыто");
                     UserInfoResponse viceCaptain = mapper.convertValue(team.getViceCaptain(), UserInfoResponse.class);
-                    if (viceCaptain != null) {
-                        viceCaptain.setPassword("Скрыто");
-                    }
                     response.setCaptain(captain);
                     response.setViceCaptain(viceCaptain);
                     return response;
@@ -79,11 +77,7 @@ public class TeamServiceImpl implements TeamService {
         Team team = getTeamDb(id);
         TeamInfoResponse response = mapper.convertValue(team, TeamInfoResponse.class);
         UserInfoResponse captain = mapper.convertValue(team.getCaptain(), UserInfoResponse.class);
-        captain.setPassword("Скрыто");
         UserInfoResponse viceCaptain = team.getViceCaptain() == null ? null : mapper.convertValue(team.getViceCaptain(), UserInfoResponse.class);
-        if (viceCaptain != null) {
-            viceCaptain.setPassword("Скрыто");
-        }
         response.setCaptain(captain);
         response.setViceCaptain(viceCaptain);
         return response;
@@ -96,26 +90,50 @@ public class TeamServiceImpl implements TeamService {
             throw new CustomException("Необходимо указать название команды", HttpStatus.BAD_REQUEST);
         }
 
-        // ПРОВЕРКА, ЧТО ТАКОЕ НАЗВ
-        
-        Team team = mapper.convertValue(request, Team.class);
+        if (teamRepo.existsByTeamName(request.getTeamName())) {
+            throw new CustomException("Команда с таким названием уже существует", HttpStatus.BAD_REQUEST);
+        }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails user = (UserDetails) authentication.getPrincipal();
-        UserInfo captain = userInfoRepo.findByLogin(user.getUsername()).get();
+        UserInfo captain = userRepo.findById(user.getUsername()).get().getUserInfo();
 
-        userInfoService.setRole(captain.getId(), UserInfoRole.CAPTAIN);
-        userService.addAuthority(captain.getLogin(), List.of("ROLE_CAPTAIN"));
-        team.setTeamName(request.getTeamName());
-        team.setCaptain(captain);
+        if (teamRepo.existsByCaptain(captain)) {
+            throw new CustomException("Команда с таким капитаном уже существует", HttpStatus.BAD_REQUEST);
+        }
 
         long viceId = request.getViceCaptainId();
-        if (viceId != 0 && viceId != captain.getId()) {
-            UserInfo viceCaptain = userInfoService.getUserDb(viceId);
-            userInfoService.setRole(viceId, UserInfoRole.VICECAPTAIN);
+        if (viceId != 0) {
+            if (viceId == captain.getId()) {
+                throw new CustomException("Создатель команды автоматически устанавливается в качестве капитана, " +
+                        "поэтому не может быть также вице-капитаном", HttpStatus.BAD_REQUEST);
+            }
+            if (!userInfoRepo.existsById(viceId)) {
+                throw new CustomException("Кандидат в вице-капитаны не зарегистрирован в БД", HttpStatus.BAD_REQUEST);
+            }
+
+            UserInfo vice = userInfoRepo.findById(viceId).get();
+            if (teamRepo.existsByViceCaptain(vice)) {
+                throw new CustomException("Кандидат в вице-капитаны уже выполняет аналогичную роль в другой команде", HttpStatus.BAD_REQUEST);
+            }
+
+            if (!vice.getLogin().isEnabled()) {
+                throw new CustomException("Кандидат в вице-капитаны заблокирован/удален", HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        Team team = mapper.convertValue(request, Team.class);
+        team.setTeamName(request.getTeamName());
+
+        userService.addAuthority(captain.getLogin().getUsername(), List.of("ROLE_CAPTAIN"));
+        userService.deleteAuthority(captain.getLogin().getUsername(), List.of("ROLE_USER"));
+        team.setCaptain(captain);
+
+        if (viceId != 0) {
             UserInfo vice = userInfoService.getUserDb(viceId);
-            userService.addAuthority(vice.getLogin(), List.of("ROLE_VICECAPTAIN"));
-            team.setViceCaptain(viceCaptain);
+            userService.addAuthority(vice.getLogin().getUsername(), List.of("ROLE_VICECAPTAIN"));
+            userService.deleteAuthority(vice.getLogin().getUsername(), List.of("ROLE_USER"));
+            team.setViceCaptain(vice);
         }
 
         team.setStatus(CommonStatus.CREATED);
@@ -139,7 +157,7 @@ public class TeamServiceImpl implements TeamService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
         UserInfo captain = team.getCaptain();
-        String captainName = captain.getLogin();
+        String captainName = captain.getLogin().getUsername();
 
         // установка ограничения - разрешено вносить изменения только в своей команде (админ может в любой)
         if (!listAuthorities.contains("ROLE_ADMIN")) {
@@ -148,27 +166,89 @@ public class TeamServiceImpl implements TeamService {
                     throw new CustomException("Пользователь не имеет прав на редактирование данной команды", HttpStatus.FORBIDDEN);
                 }
             } else {
-                String viceName = team.getViceCaptain().getLogin();
+                String viceName = team.getViceCaptain().getLogin().getUsername();
                 if (!userName.equals(captainName) && !userName.equals(viceName)) {
                     throw new CustomException("Пользователь не имеет прав на редактирование данной команды", HttpStatus.FORBIDDEN);
                 }
             }
         }
 
+        if (request.getTeamName() != null && !request.getTeamName().equals(team.getTeamName()) &&  teamRepo.existsByTeamName(request.getTeamName())) {
+            throw new CustomException("Команда с таким названием уже существует", HttpStatus.BAD_REQUEST);
+        }
+
+        long newCaptainId = request.getCaptainId();
+        if (newCaptainId < 0) {
+            throw new CustomException("Нельзя удалить капитана команды (только заменить на другого)", HttpStatus.BAD_REQUEST);
+        }
+
+        if (newCaptainId > 0) {
+            if(!userInfoRepo.existsById(newCaptainId)) {
+                throw new CustomException("Кандидат в капитаны не зарегистрирован в БД", HttpStatus.BAD_REQUEST);
+            }
+
+            UserInfo newCaptain = userInfoRepo.findById(newCaptainId).get();
+
+            if (!newCaptain.getLogin().isEnabled()) {
+                throw new CustomException("Кандидат в капитаны заблокирован/удален", HttpStatus.BAD_REQUEST);
+            }
+
+            if (newCaptainId!=team.getCaptain().getId() && teamRepo.existsByCaptain(newCaptain)) {
+                throw new CustomException("Кандидат в капитаны уже является капитаном другой команды", HttpStatus.BAD_REQUEST);
+            }
+
+            if (team.getViceCaptain() != null && newCaptainId != team.getCaptain().getId() && userName.equals(team.getViceCaptain().getLogin().getUsername())) {
+                throw new CustomException("Вице-капитан не может заменить капитана", HttpStatus.BAD_REQUEST);
+            }
+        }
+
+
+
+        long newViceCaptainId = request.getViceCaptainId();
+        if (newViceCaptainId > 0) {
+            if(!userInfoRepo.existsById(newViceCaptainId)) {
+                throw new CustomException("Кандидат в вице-капитаны не зарегистрирован в БД", HttpStatus.BAD_REQUEST);
+            }
+
+            UserInfo newViceCaptain = userInfoRepo.findById(newViceCaptainId).get();
+
+            if (!newViceCaptain.getLogin().isEnabled()) {
+                throw new CustomException("Кандидат в вице-капитаны заблокирован/удален", HttpStatus.BAD_REQUEST);
+            }
+
+            if (team.getViceCaptain()!=null){
+                if (newViceCaptainId!=team.getViceCaptain().getId() && teamRepo.existsByViceCaptain(newViceCaptain)) {
+                    throw new CustomException("Кандидат в вице-капитаны уже является вице-капитаном другой команды", HttpStatus.BAD_REQUEST);
+                }
+            } else if (teamRepo.existsByViceCaptain(newViceCaptain)) {
+                throw new CustomException("Кандидат в вице-капитаны уже является вице-капитаном другой команды", HttpStatus.BAD_REQUEST);
+            }
+
+            if (newCaptainId == 0) {
+                if (team.getCaptain().getId() == request.getViceCaptainId()) {
+                    throw new CustomException("Нельзя установить вице-капитаном пользователя, который уже является капитаном команды", HttpStatus.BAD_REQUEST);
+                }
+            } else {
+                if (request.getCaptainId() == request.getViceCaptainId()) {
+                    throw new CustomException("Нельзя установить одного пользователя и капитаном и вице-капитаном команды", HttpStatus.BAD_REQUEST);
+                }
+            }
+
+        }
+
+
         // смена названия команды
         team.setTeamName(request.getTeamName() == null ? team.getTeamName() : request.getTeamName());
+
 
         // замена капитана
         if (request.getCaptainId() != 0 && request.getCaptainId()!=captain.getId()) {
             if (team.getViceCaptain() != null) {
-                String viceName = team.getViceCaptain().getLogin();
-                if (userName.equals(viceName)) {
-                    throw new CustomException("Вице-капитан не может менять капитана", HttpStatus.FORBIDDEN);
-                }
+                String viceName = team.getViceCaptain().getLogin().getUsername();
             }
 
             UserInfo newCaptainUI = userInfoService.getUserDb(request.getCaptainId());
-            User newCaptain = userService.getUser(newCaptainUI.getLogin());
+            User newCaptain = userService.getUser(newCaptainUI.getLogin().getUsername());
             Collection<? extends GrantedAuthority> newCaptainAuthorities = newCaptain.getAuthorities();
             List<String> newCaptainListAuthorities = newCaptainAuthorities
                     .stream()
@@ -179,60 +259,44 @@ public class TeamServiceImpl implements TeamService {
             }
 
             if(team.getViceCaptain() != null && request.getCaptainId()==team.getViceCaptain().getId()){
-                userService.deleteAuthority(team.getViceCaptain().getLogin(), "ROLE_VICECAPTAIN");
+                userService.deleteAuthority(team.getViceCaptain().getLogin().getUsername(), List.of("ROLE_VICECAPTAIN"));
                 team.setViceCaptain(null);
             }
 
-            userService.deleteAuthority(team.getCaptain().getLogin(), "ROLE_CAPTAIN");
-            userService.addAuthority(team.getCaptain().getLogin(), List.of("ROLE_USER"));
-            userInfoService.setRole(team.getCaptain().getId(), UserInfoRole.USER);
+            userService.deleteAuthority(team.getCaptain().getLogin().getUsername(),  List.of("ROLE_CAPTAIN"));
+            userService.addAuthority(team.getCaptain().getLogin().getUsername(), List.of("ROLE_USER"));
 
-            userInfoService.setRole(newCaptainUI.getId(), UserInfoRole.CAPTAIN);
+            userService.deleteAuthority(newCaptain.getUsername(),  List.of("ROLE_USER"));
             userService.addAuthority(newCaptain.getUsername(), List.of("ROLE_CAPTAIN"));
             team.setCaptain(newCaptainUI);
         }
 
         // замена вице-капитана
-        if (request.getViceCaptainId() == 0) {
+        if (request.getViceCaptainId() == -1) {
             if (team.getViceCaptain() != null) {
                 UserInfo viceCaptainUI = team.getViceCaptain();
-                userInfoService.setRole(viceCaptainUI.getId(), UserInfoRole.USER);
-                userService.deleteAuthority(viceCaptainUI.getLogin(), "ROLE_VICECAPTAIN");
-                userService.addAuthority(viceCaptainUI.getLogin(), List.of("ROLE_USER"));
+                userService.deleteAuthority(viceCaptainUI.getLogin().getUsername(),  List.of("ROLE_VICECAPTAIN"));
+                userService.addAuthority(viceCaptainUI.getLogin().getUsername(), List.of("ROLE_USER"));
                 team.setViceCaptain(null);
-            } else {}
-        } else {
-            UserInfo newViceCaptainUI = userInfoService.getUserDb(request.getViceCaptainId());
-            User newViceCaptain = userService.getUser(newViceCaptainUI.getLogin());
-            Collection<? extends GrantedAuthority> newViceCaptainAuthorities = newViceCaptain.getAuthorities();
-            List<String> newViceCaptainListAuthorities = newViceCaptainAuthorities
-                    .stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList());
-            if (newViceCaptainListAuthorities.contains("ROLE_VICECAPTAIN")) {
-                if (team.getViceCaptain() == null || team.getViceCaptain().getId() != request.getViceCaptainId())
-                    throw new CustomException("Пользователь уже является вице-капитаном другой команды", HttpStatus.BAD_REQUEST);
             }
+        } else if (request.getViceCaptainId() > 0) {
+            UserInfo newViceCaptainUI = userInfoService.getUserDb(request.getViceCaptainId());
+            User newViceCaptain = userService.getUser(newViceCaptainUI.getLogin().getUsername());
 
-            if (request.getViceCaptainId() == team.getCaptain().getId()) {
-                throw new CustomException("Пользователь уже является капитаном этой команды", HttpStatus.BAD_REQUEST);
+            if (team.getViceCaptain() == null) {
+                userService.addAuthority(newViceCaptain.getUsername(), List.of("ROLE_VICECAPTAIN"));
+                userService.deleteAuthority(newViceCaptain.getUsername(),  List.of("ROLE_USER"));
+                team.setViceCaptain(newViceCaptainUI);
             } else {
-                if (team.getViceCaptain() == null) {
-                    userInfoService.setRole(newViceCaptainUI.getId(), UserInfoRole.VICECAPTAIN);
-                    userService.addAuthority(newViceCaptainUI.getLogin(), List.of("ROLE_VICECAPTAIN"));
-                    team.setViceCaptain(newViceCaptainUI);
-                } else {
-                    if (team.getViceCaptain().getId() != request.getViceCaptainId()) {
-                        UserInfo viceCaptainUI = team.getViceCaptain();
-                        userInfoService.setRole(viceCaptainUI.getId(), UserInfoRole.USER);
-                        userService.deleteAuthority(viceCaptainUI.getLogin(), "ROLE_VICECAPTAIN");
-                        userService.addAuthority(viceCaptainUI.getLogin(), List.of("ROLE_USER"));
+                if (team.getViceCaptain().getId() != request.getViceCaptainId()) {
+                    UserInfo viceCaptainUI = team.getViceCaptain();
+                    userService.deleteAuthority(viceCaptainUI.getLogin().getUsername(),  List.of("ROLE_VICECAPTAIN"));
+                    userService.addAuthority(viceCaptainUI.getLogin().getUsername(), List.of("ROLE_USER"));
 
-                        userInfoService.setRole(newViceCaptainUI.getId(), UserInfoRole.VICECAPTAIN);
-                        userService.addAuthority(newViceCaptainUI.getLogin(), List.of("ROLE_VICECAPTAIN"));
-                        team.setViceCaptain(newViceCaptainUI);
-                    } else {}
-                }
+                    userService.addAuthority(newViceCaptainUI.getLogin().getUsername(), List.of("ROLE_VICECAPTAIN"));
+                    userService.deleteAuthority(newViceCaptain.getUsername(),  List.of("ROLE_USER"));
+                    team.setViceCaptain(newViceCaptainUI);
+                } else {}
             }
         }
 
@@ -248,6 +312,10 @@ public class TeamServiceImpl implements TeamService {
     public void deleteTeam(Long id) {
         Team team = getTeamDb(id);
 
+        if (team.getStatus()==CommonStatus.DELETED) {
+            throw new CustomException("Команда уже удалена", HttpStatus.BAD_REQUEST);
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails user = (UserDetails) authentication.getPrincipal();
         String userName = user.getUsername();
@@ -258,7 +326,7 @@ public class TeamServiceImpl implements TeamService {
                 .collect(Collectors.toList());
 
         UserInfo captain = team.getCaptain();
-        String captainName = captain.getLogin();
+        String captainName = captain.getLogin().getUsername();
 
         if (!listAuthorities.contains("ROLE_ADMIN")) {
             if (team.getViceCaptain() == null) {
@@ -266,24 +334,32 @@ public class TeamServiceImpl implements TeamService {
                     throw new CustomException("Пользователь не имеет прав на удаление данной команды", HttpStatus.FORBIDDEN);
                 }
             } else {
-                String viceName = team.getViceCaptain().getLogin();
+                String viceName = team.getViceCaptain().getLogin().getUsername();
                 if (!userName.equals(captainName) && !userName.equals(viceName)) {
                     throw new CustomException("Пользователь не имеет прав на удаление данной команды", HttpStatus.FORBIDDEN);
                 }
             }
         }
 
-        userService.deleteAuthority(captainName, "ROLE_CAPTAIN");
+        userService.deleteAuthority(captainName,  List.of("ROLE_CAPTAIN"));
         userService.addAuthority(captainName, List.of("ROLE_USER"));
 
         if (team.getViceCaptain()!=null) {
-            String viceName = team.getViceCaptain().getLogin();
-            userService.deleteAuthority(viceName, "ROLE_VICECAPTAIN");
+            String viceName = team.getViceCaptain().getLogin().getUsername();
+            userService.deleteAuthority(viceName,  List.of("ROLE_VICECAPTAIN"));
             userService.addAuthority(viceName, List.of("ROLE_USER"));
         }
 
         team.setCaptain(null);
         team.setViceCaptain(null);
+
+        List<UserInfo> members = team.getUserInfos();
+        for (UserInfo userInfo : members) {
+            userInfo.setTeam(null);
+            userInfoRepo.save(userInfo);
+        }
+        team.setUserInfos(new ArrayList<>());
+
         team.setUpdatedAt(LocalDateTime.now());
         team.setStatus(CommonStatus.DELETED);
         teamRepo.save(team);
@@ -293,6 +369,10 @@ public class TeamServiceImpl implements TeamService {
     public Page<UserInfoResponse> setMember(Long teamId, Long userId, Integer page, Integer perPage, String sort, Sort.Direction order) {
         Team team = getTeamDb(teamId);
 
+        if (team.getStatus()==CommonStatus.DELETED) {
+            throw new CustomException("Нельзя добавить члена в удаленную команду", HttpStatus.FORBIDDEN);
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails user = (UserDetails) authentication.getPrincipal();
         String userName = user.getUsername();
@@ -303,7 +383,7 @@ public class TeamServiceImpl implements TeamService {
                 .collect(Collectors.toList());
 
         UserInfo captain = team.getCaptain();
-        String captainName = captain.getLogin();
+        String captainName = captain.getLogin().getUsername();
 
         if (!listAuthorities.contains("ROLE_ADMIN")) {
             if (team.getViceCaptain() == null) {
@@ -311,7 +391,7 @@ public class TeamServiceImpl implements TeamService {
                     throw new CustomException("Пользователь не имеет прав на изменение состава данной команды", HttpStatus.FORBIDDEN);
                 }
             } else {
-                String viceName = team.getViceCaptain().getLogin();
+                String viceName = team.getViceCaptain().getLogin().getUsername();
                 if (!userName.equals(captainName) && !userName.equals(viceName)) {
                     throw new CustomException("Пользователь не имеет прав на изменение состава данной команды", HttpStatus.FORBIDDEN);
                 }
@@ -319,6 +399,14 @@ public class TeamServiceImpl implements TeamService {
         }
 
         UserInfo userInfo = userInfoService.getUserDb(userId);
+
+        if (!userInfo.getLogin().isEnabled()) {
+            throw new CustomException("Добавляемый пользователь заблокирован/удален", HttpStatus.BAD_REQUEST);
+        }
+
+        if (userInfo.getTeam()!=null) {
+            throw new CustomException("Пользователь уже зарегистрирован в этой или другой команде", HttpStatus.BAD_REQUEST);
+        }
 
         List<UserInfo> members = team.getUserInfos();
         members.add(userInfo);
@@ -349,17 +437,17 @@ public class TeamServiceImpl implements TeamService {
                 .collect(Collectors.toList());
 
         UserInfo captain = team.getCaptain();
-        String captainName = captain.getLogin();
+        String captainName = captain.getLogin().getUsername();
 
 
         if (!listAuthorities.contains("ROLE_ADMIN")) {
-            if (!userInfo.getLogin().equals(userName)) {
+            if (!userInfo.getLogin().getUsername().equals(userName)) {
                 if (team.getViceCaptain() == null) {
                     if (!userName.equals(captainName)) {
                         throw new CustomException("Пользователь не имеет прав на изменение состава данной команды", HttpStatus.FORBIDDEN);
                     }
                 } else {
-                    String viceName = team.getViceCaptain().getLogin();
+                    String viceName = team.getViceCaptain().getLogin().getUsername();
                     if (!userName.equals(captainName) && !userName.equals(viceName)) {
                         throw new CustomException("Пользователь не имеет прав на изменение состава данной команды", HttpStatus.FORBIDDEN);
                     }

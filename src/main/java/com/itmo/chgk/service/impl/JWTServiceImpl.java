@@ -2,7 +2,8 @@ package com.itmo.chgk.service.impl;
 
 import com.itmo.chgk.exceptions.CustomException;
 import com.itmo.chgk.model.db.entity.User;
-import com.itmo.chgk.model.db.repository.UserRepository;
+import com.itmo.chgk.model.db.repository.UserRepo;
+import com.itmo.chgk.service.JWTService;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,13 +13,13 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.function.Function;
 
+
 @RequiredArgsConstructor
 @Component
-public class JWTService {
-    private final UserRepository repository;
+public class JWTServiceImpl implements JWTService {
+    private final UserRepo repository;
     @Value("${jwt.signing_key}")
     public String jwtSigningKey;
-    //= "ArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtem";
 
 // 1. Методы генерации токена
     // метод генерирует токен
@@ -58,7 +59,7 @@ public class JWTService {
 // 2. Методы извлечения сведений из токена
 
     // Метод извлекает из токена все Претензии (пары ключ-значение их Полезной нагрузки)
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         try {
             return Jwts.parser()
                     .setSigningKey(jwtSigningKey).build()

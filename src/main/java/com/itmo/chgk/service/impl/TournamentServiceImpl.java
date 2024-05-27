@@ -42,7 +42,7 @@ public class TournamentServiceImpl implements TournamentService {
     private final TeamRepo teamRepo;
     private final TournamentTableRepo tournamentTableRepo;
     private final TeamService teamService;
-    private final UserInfoRepo userInfoRepo;
+    private final UserRepo userRepo;
     private final UserService userService;
 
     @Override
@@ -75,6 +75,11 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getTournName() == null) {
             throw new CustomException("Необходимо указать название турнира", HttpStatus.BAD_REQUEST);
         }
+
+        if (tournamentRepo.existsByTournName(request.getTournName())) {
+            throw new CustomException("Турнир с таким названием уже существует", HttpStatus.BAD_REQUEST);
+        }
+
         if (request.getLevel() == null) {
             throw new CustomException("Необходимо указать уровень турнира", HttpStatus.BAD_REQUEST);
         }
@@ -91,7 +96,7 @@ public class TournamentServiceImpl implements TournamentService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String login = userDetails.getUsername();
-        UserInfo userInfo = userInfoRepo.findByLogin(login).get();
+        UserInfo userInfo = userRepo.findById(login).get().getUserInfo();
         tournament.setOrganizer(userInfo);
 
         User user = userService.getUser(login);
@@ -118,8 +123,8 @@ public class TournamentServiceImpl implements TournamentService {
                 .collect(Collectors.toList());
 
         if (!listAuthorities.contains("ROLE_ADMIN")) {
-            if (!userInfo.getLogin().equals(userName)) {
-                throw new CustomException("У пользователя нет прав на удаление данного турнира", HttpStatus.FORBIDDEN);
+            if (!userInfo.getLogin().getUsername().equals(userName)) {
+                throw new CustomException("У пользователя нет прав на изменение данного турнира", HttpStatus.FORBIDDEN);
             }
         }
 
@@ -157,7 +162,7 @@ public class TournamentServiceImpl implements TournamentService {
                 .collect(Collectors.toList());
 
         if (!listAuthorities.contains("ROLE_ADMIN")) {
-            if (!userInfo.getLogin().equals(userName)) {
+            if (!userInfo.getLogin().getUsername().equals(userName)) {
                 throw new CustomException("У пользователя нет прав на удаление данного турнира", HttpStatus.FORBIDDEN);
             }
         }

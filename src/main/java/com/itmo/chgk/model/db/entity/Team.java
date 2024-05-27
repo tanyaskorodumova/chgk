@@ -27,7 +27,7 @@ public class Team {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(name = "team_name")
+    @Column(name = "team_name", unique = true)
     String teamName;
 
     @OneToOne

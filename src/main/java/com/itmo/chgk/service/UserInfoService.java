@@ -12,13 +12,7 @@ public interface UserInfoService {
 
     UserInfoResponse getUser(Long id);
 
-    UserInfoResponse createUser(UserInfoRequest request);
-
     UserInfoResponse updateUser(Long id, UserInfoRequest request);
 
-    void deleteUser(Long id);
-
     UserInfo getUserDb(Long id);
-
-    void setRole(Long id, UserInfoRole role);
 }

@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TournamentRepo  extends JpaRepository<Tournament, Long> {
     Tournament findFirstByOrganizer(UserInfo organizer);
+    boolean existsByTournName(String tournName);
 }
