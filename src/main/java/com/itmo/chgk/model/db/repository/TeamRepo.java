@@ -21,5 +21,4 @@ public interface TeamRepo extends JpaRepository<Team, Long> {
     boolean existsByCaptain(UserInfo captain);
 
     boolean existsByViceCaptain(UserInfo viceCaptain);
-
 }

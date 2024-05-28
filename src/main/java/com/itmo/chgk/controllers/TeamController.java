@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
 
 @RestController
@@ -80,5 +79,4 @@ public class TeamController {
                                              @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return teamService.getMembers(id, page, perPage, sort, order);
     }
-
 }

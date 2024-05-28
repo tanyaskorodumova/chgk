@@ -25,5 +25,4 @@ public interface TeamService {
     Page<UserInfoResponse> getMembers(Long id, Integer page, Integer perPage, String sort, Sort.Direction order);
 
     Team getTeamDb(Long id);
-
 }

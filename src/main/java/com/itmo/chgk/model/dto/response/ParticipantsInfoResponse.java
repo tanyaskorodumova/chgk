@@ -8,10 +8,10 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ParticipantsInfoResponse extends TeamInfoResponse{
     Long gameId;

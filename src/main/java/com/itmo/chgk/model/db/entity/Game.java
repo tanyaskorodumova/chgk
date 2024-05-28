@@ -19,9 +19,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "games")
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

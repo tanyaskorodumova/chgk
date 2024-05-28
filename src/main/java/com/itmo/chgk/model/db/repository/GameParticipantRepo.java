@@ -15,7 +15,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface GameParticipantRepo  extends JpaRepository<GameParticipant, Long> {
-
     @Query(nativeQuery = true,  value = "select * from game_participants p left join tournaments_games t on p.game_id = t.games_id " +
             "where t.tournament_id = :tournament and p.status <> 2")
     Page<GameParticipant> findAllByTournament(@Param("tournament") Long tournament, Pageable pageable);

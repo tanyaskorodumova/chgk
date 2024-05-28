@@ -9,17 +9,17 @@ import com.itmo.chgk.model.enums.Stage;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
+
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class GameInfoRequest {
     String gameName;
 
@@ -35,5 +35,4 @@ public class GameInfoRequest {
 
     @Min(value = 1, message = "Максимальное количество участников не может быть меньше 1")
     Integer maxParticipants;
-
 }

@@ -18,7 +18,6 @@ import com.itmo.chgk.service.UserService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.postgresql.util.PSQLException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -36,9 +35,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
+@Service
 public class TeamServiceImpl implements TeamService {
     private final TeamRepo teamRepo;
     private final UserInfoRepo userInfoRepo;
@@ -159,7 +158,6 @@ public class TeamServiceImpl implements TeamService {
         UserInfo captain = team.getCaptain();
         String captainName = captain.getLogin().getUsername();
 
-        // установка ограничения - разрешено вносить изменения только в своей команде (админ может в любой)
         if (!listAuthorities.contains("ROLE_ADMIN")) {
             if (team.getViceCaptain() == null) {
                 if (!userName.equals(captainName)) {
@@ -202,8 +200,6 @@ public class TeamServiceImpl implements TeamService {
             }
         }
 
-
-
         long newViceCaptainId = request.getViceCaptainId();
         if (newViceCaptainId > 0) {
             if(!userInfoRepo.existsById(newViceCaptainId)) {
@@ -236,16 +232,9 @@ public class TeamServiceImpl implements TeamService {
 
         }
 
-
-        // смена названия команды
         team.setTeamName(request.getTeamName() == null ? team.getTeamName() : request.getTeamName());
 
-
-        // замена капитана
         if (request.getCaptainId() != 0 && request.getCaptainId()!=captain.getId()) {
-            if (team.getViceCaptain() != null) {
-                String viceName = team.getViceCaptain().getLogin().getUsername();
-            }
 
             UserInfo newCaptainUI = userInfoService.getUserDb(request.getCaptainId());
             User newCaptain = userService.getUser(newCaptainUI.getLogin().getUsername());
@@ -271,7 +260,6 @@ public class TeamServiceImpl implements TeamService {
             team.setCaptain(newCaptainUI);
         }
 
-        // замена вице-капитана
         if (request.getViceCaptainId() == -1) {
             if (team.getViceCaptain() != null) {
                 UserInfo viceCaptainUI = team.getViceCaptain();
@@ -296,7 +284,7 @@ public class TeamServiceImpl implements TeamService {
                     userService.addAuthority(newViceCaptainUI.getLogin().getUsername(), List.of("ROLE_VICECAPTAIN"));
                     userService.deleteAuthority(newViceCaptain.getUsername(),  List.of("ROLE_USER"));
                     team.setViceCaptain(newViceCaptainUI);
-                } else {}
+                }
             }
         }
 
@@ -458,7 +446,6 @@ public class TeamServiceImpl implements TeamService {
         userInfo.setTeam(null);
         userInfoRepo.save(userInfo);
 
-
         members.remove(userInfo);
         teamRepo.save(team);
 
@@ -478,5 +465,4 @@ public class TeamServiceImpl implements TeamService {
 
         return new PageImpl<>(allUsers);
     }
-
 }

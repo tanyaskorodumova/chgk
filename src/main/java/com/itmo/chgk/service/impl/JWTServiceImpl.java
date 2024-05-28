@@ -6,25 +6,27 @@ import com.itmo.chgk.model.db.repository.UserRepo;
 import com.itmo.chgk.service.JWTService;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 import java.util.Date;
 import java.util.Optional;
 import java.util.function.Function;
 
-
+@Slf4j
 @RequiredArgsConstructor
-@Component
+@Service
 public class JWTServiceImpl implements JWTService {
-    private final UserRepo repository;
+    private final UserRepo userRepo;
     @Value("${jwt.signing_key}")
     public String jwtSigningKey;
 
 // 1. Методы генерации токена
     // метод генерирует токен
     public String generateToken(String username) {
-
         return Jwts.builder()
                 .setSubject(username)
                 .claim("scope", "access")
@@ -36,7 +38,6 @@ public class JWTServiceImpl implements JWTService {
 
     // метод генерирует рефреш-токен
     public String generateRToken(String username) {
-
         String RToken = Jwts.builder()
                 .setSubject(username)
                 .claim("scope", "refresh")
@@ -45,13 +46,13 @@ public class JWTServiceImpl implements JWTService {
                 .signWith(SignatureAlgorithm.HS256, jwtSigningKey)
                 .compact();
 
-        Optional<User> OpEmp= repository.findById(username);
+        Optional<User> OpEmp= userRepo.findById(username);
         if(OpEmp.isEmpty())
             throw new CustomException("Субъект токена отсутствует в БД", HttpStatus.NOT_FOUND);
 
         User user = OpEmp.get();
         user.setToken(RToken);
-        repository.save(user);
+        userRepo.save(user);
 
         return RToken;
     }

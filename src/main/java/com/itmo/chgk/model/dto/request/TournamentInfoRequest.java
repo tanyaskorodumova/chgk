@@ -4,18 +4,18 @@ import com.itmo.chgk.model.enums.TournamentLevel;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class TournamentInfoRequest {
     String tournName;
+
     TournamentLevel level;
 
     @Min(value = 1, message = "Значимость не может быть меньше 1")

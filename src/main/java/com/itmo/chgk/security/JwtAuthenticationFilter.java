@@ -14,14 +14,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 @AllArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
-    private final UserRepo repository;
-
+    private final UserRepo userRepo;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -59,12 +59,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
 // 5. Проверяем зарегистрирован ли пользователь с таким username
-        if (!repository.existsById(username)) {
+        if (!userRepo.existsById(username)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        User user = repository.findById(username).orElseThrow();
+        User user = userRepo.findById(username).orElseThrow();
         user.getAuthorities();
 
 // 6. Проверяем, валидность токена

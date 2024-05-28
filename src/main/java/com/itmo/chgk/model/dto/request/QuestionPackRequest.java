@@ -7,10 +7,10 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class QuestionPackRequest {
     Integer number;
     QuestionComplexity minComplexity;

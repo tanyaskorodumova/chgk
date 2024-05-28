@@ -30,9 +30,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
+@Service
 public class QuestionServiceImpl implements QuestionService {
     private final ObjectMapper mapper;
     private final QuestionRepo questionRepo;
@@ -40,7 +40,6 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public Page<QuestionInfoResponse> getAllQuestions(Integer page, Integer perPage, String sort, Sort.Direction order) {
-
         Pageable request = PaginationUtil.getPageRequest(page, perPage, sort, order);
 
         List<QuestionInfoResponse> all = questionRepo.findAllByStatus(request, QuestionStatus.APPROVED)
@@ -116,7 +115,6 @@ public class QuestionServiceImpl implements QuestionService {
 
 
         return mapper.convertValue(question, QuestionInfoResponse.class);
-
     }
 
     @Override
@@ -184,7 +182,6 @@ public class QuestionServiceImpl implements QuestionService {
         question = questionRepo.save(question);
 
         return mapper.convertValue(question, QuestionInfoResponse.class);
-
     }
 
     @Override
@@ -217,5 +214,4 @@ public class QuestionServiceImpl implements QuestionService {
 
         return allOld;
     }
-
 }

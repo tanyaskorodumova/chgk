@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -23,7 +23,6 @@ import java.util.Map;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public class GlobalException {
-
     @Bean
     public DefaultErrorAttributes errorAttributes() {
         return new DefaultErrorAttributes() {
@@ -67,5 +66,4 @@ public class GlobalException {
         return ResponseEntity.status(400)
                 .body(new ErrorMessage(message));
     }
-
 }

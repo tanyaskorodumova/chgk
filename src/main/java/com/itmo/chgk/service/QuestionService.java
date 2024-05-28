@@ -11,7 +11,6 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 
 public interface QuestionService {
-
     Page<QuestionInfoResponse> getAllQuestions(Integer page, Integer perPage, String sort, Sort.Direction order);
 
     QuestionInfoResponse getQuestion(Long id);

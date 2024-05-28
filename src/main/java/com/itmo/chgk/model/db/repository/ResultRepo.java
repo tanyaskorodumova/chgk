@@ -13,7 +13,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface ResultRepo  extends JpaRepository<Result, Long> {
-
     Page<Result> findAllByGame(Game game, Pageable pageable);
 
     Result findByGameAndTeam(Game game, Team team);

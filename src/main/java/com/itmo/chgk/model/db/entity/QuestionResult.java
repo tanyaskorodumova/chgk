@@ -8,17 +8,17 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "question_results",
         uniqueConstraints = @UniqueConstraint(columnNames = {"question_id", "team_id"})
 )
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class QuestionResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

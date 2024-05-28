@@ -1,6 +1,5 @@
 package com.itmo.chgk.model.db.repository;
 
-
 import com.itmo.chgk.model.db.entity.Question;
 import com.itmo.chgk.model.enums.QuestionStatus;
 import org.springframework.data.domain.Page;

@@ -8,13 +8,12 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class URequest {
     @NotEmpty(message = "Login must be set")
     @Size(min = 4, message = "Логин слишком короткий")

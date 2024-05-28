@@ -9,17 +9,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
-@AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
-    UserService userService;
+    private final UserService userService;
 
     @GetMapping("/all")
     @Operation(summary = "Получение информации обо всех аккаунтах")
@@ -28,7 +28,7 @@ public class UserController {
                                            @RequestParam(defaultValue = "username") String sort,
                                            @RequestParam(defaultValue = "ASC") Sort.Direction order){
             return userService.getAllUsers(page, perPage, sort, order);
-        }
+    }
 
     @GetMapping("/{user}")
     @Operation(summary = "Получение информации об одном аккаунте")
@@ -46,7 +46,7 @@ public class UserController {
     @Operation(summary = "Изменение пароля пользователя")
     public String updatePassword(@RequestBody @Valid UserRequest request){
             return userService.updatePassword(request);
-        }
+    }
 
     @PutMapping("/authority/set")
     @Operation(summary = "Изменение полномочий пользователя")

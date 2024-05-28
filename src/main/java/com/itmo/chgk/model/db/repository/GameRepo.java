@@ -22,6 +22,4 @@ public interface GameRepo  extends JpaRepository<Game, Long> {
     Page<Game> findAllByTournamentAndStatusIsNot(@Param("tournament") Tournament tournament,
                                                  @Param("status") GameStatus status,
                                                  Pageable pageable);
-
-
 }

@@ -1,7 +1,6 @@
 package com.itmo.chgk.service;
 
 import com.itmo.chgk.model.db.entity.Tournament;
-import com.itmo.chgk.model.dto.request.TeamInfoRequest;
 import com.itmo.chgk.model.dto.request.TournamentInfoRequest;
 import com.itmo.chgk.model.dto.response.*;
 import org.springframework.data.domain.Page;

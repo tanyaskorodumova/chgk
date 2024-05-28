@@ -1,6 +1,5 @@
 package com.itmo.chgk.service;
 
-import com.itmo.chgk.model.db.entity.Authority;
 import com.itmo.chgk.model.dto.request.AuthorityRequest;
 import com.itmo.chgk.model.dto.request.URequest;
 import com.itmo.chgk.model.dto.response.AuthorityResponse;
@@ -10,8 +9,6 @@ import com.itmo.chgk.model.dto.request.UserRequest;
 import com.itmo.chgk.model.dto.response.UserResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 

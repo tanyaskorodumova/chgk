@@ -10,10 +10,10 @@ import java.util.List;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthorityResponse {
     String username;
     List<Authority> authorities = new ArrayList<Authority>();

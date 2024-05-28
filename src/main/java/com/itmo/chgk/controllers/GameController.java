@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -200,5 +200,4 @@ public class GameController {
                           @RequestParam(defaultValue = "ASC") Sort.Direction order) {
         return gameService.startGame(id, page, perPage, sort, order);
     }
-
 }

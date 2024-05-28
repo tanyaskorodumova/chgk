@@ -17,7 +17,6 @@ import java.util.List;
 @RequestMapping("/questions")
 @RequiredArgsConstructor
 public class QuestionController {
-
     private final QuestionService questionService;
 
     @GetMapping("/all")
@@ -82,5 +81,4 @@ public class QuestionController {
     public void deleteQuestion(@PathVariable Long id) {
         questionService.deleteQuestion(id);
     }
-
 }

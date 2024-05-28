@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -34,7 +35,6 @@ import java.util.stream.Collectors;
 @Service
 public class TournamentServiceImpl implements TournamentService {
     private final ObjectMapper mapper;
-
     private final TournamentRepo tournamentRepo;
     private final GameRepo gameRepo;
     private final GameParticipantRepo gameParticipantRepo;
@@ -307,6 +307,5 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournament.setStatus(TournamentStatus.FINISHED);
         tournamentRepo.save(tournament);
-
     }
 }

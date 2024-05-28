@@ -14,9 +14,9 @@ import org.springframework.security.core.GrantedAuthority;
 @Setter
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name="authorities")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Authority implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

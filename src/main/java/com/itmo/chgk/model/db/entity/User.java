@@ -16,20 +16,23 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@JsonIgnoreProperties(ignoreUnknown = true)
+@NoArgsConstructor
 @Entity
 @Table(name="users")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements UserDetails {
 
     @Id
     @Column(name="username")
     private String username;
+
     @Column(name="password")
     private String password;
+
     @Column(name="token")
     private String token;
+
     @Column(name="enabled")
     private boolean enabled;
 

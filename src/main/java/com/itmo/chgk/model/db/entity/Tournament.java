@@ -11,16 +11,16 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "tournaments")
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Tournament {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

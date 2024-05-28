@@ -19,6 +19,8 @@ import com.itmo.chgk.service.JWTService;
 import com.itmo.chgk.service.UserService;
 import com.itmo.chgk.utils.PaginationUtil;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,17 +44,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
-
     private final UserRepo userRepo;
     private final UserInfoRepo userInfoRepo;
     private final AuthorityRepo authorityRepo;
     private final PasswordEncoder encoder;
     private final JWTService jwtService;
     private final ObjectMapper mapper;
-
 
     @Transactional
     @Override
@@ -117,7 +119,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public JwtAuthenticationResponse createUser(URequest request) {
-
         userRepo.findById(request.getUsername())
                 .ifPresent(user -> {
                     throw new CustomException("Данный логин уже существует", HttpStatus.CONFLICT);
@@ -153,24 +154,20 @@ public class UserServiceImpl implements UserService {
 
         userRepo.save(user);
 
-
         Authority auth = new Authority("ROLE_USER");
         user.addAuthority(auth);
         auth.setUsername(user);
         authorityRepo.save(auth);
 
-
         UserInfo userInfo = new UserInfo(request.getEmail(), user, request.getFirstName(), request.getLastName(), bDay, LocalDateTime.now());
         userInfo = userInfoRepo.save(userInfo);
         user.setUserInfo(userInfo);
-
 
         String jwt = jwtService.generateToken(request.getUsername());
         String jwtR = jwtService.generateRToken(request.getUsername());
 
         return new JwtAuthenticationResponse(jwt, jwtR);
     }
-
 
     @Transactional
     @Override
@@ -185,7 +182,6 @@ public class UserServiceImpl implements UserService {
         User user = getUser(request.getUsername());
 
         String pass = request.getPassword();
-
         String CodPass = encoder.encode(pass);
         user.setPassword(CodPass);
 

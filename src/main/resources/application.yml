@@ -17,4 +17,4 @@ spring:
           lob:
             non_contextual_creation: true
 jwt:
-  signing_key: ArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtemArtem
+  signing_key: 338383e6be5b3aa1f35bc59cf84849a0ddfbee0ac35f5efb3276d834a3c1d8ed

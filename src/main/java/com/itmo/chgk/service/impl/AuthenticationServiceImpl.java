@@ -9,6 +9,8 @@ import com.itmo.chgk.service.AuthenticationService;
 import com.itmo.chgk.service.JWTService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,15 +18,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
-@AllArgsConstructor
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
-
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final UserRepo repository;
-
+    private final UserRepo userRepo;
 
     public JwtAuthenticationResponse signIn(UserRequest request) throws CustomException {
         try {
@@ -57,11 +57,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         String username = jwtService.extractUserName(token);
-        if (!repository.existsById(username)) {
+        if (!userRepo.existsById(username)) {
             throw new CustomException("Держатель токена не зарегистрирован в БД", HttpStatus.BAD_REQUEST);
         }
 
-        User user = repository.findById(username).get();
+        User user = userRepo.findById(username).get();
         String RToken = user.getToken();
 
         if(!token.equals(RToken)){

@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Comparator;
@@ -224,7 +225,6 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public void deleteGame(Long id) {
-
         Game game = getGameDb(id);
 
         Tournament tournament = game.getTournament();
@@ -413,7 +413,6 @@ public class GameServiceImpl implements GameService {
                         throw new CustomException("Пользователь не является капитаном/вице-капитаном этой команды " +
                                 "и не может отменить участие в игре чужой команды", HttpStatus.FORBIDDEN);
                 }
-
             }
         }
 
@@ -587,7 +586,6 @@ public class GameServiceImpl implements GameService {
                     })
                     .collect(Collectors.toList());
         }
-
         return finalResponse;
     }
 
@@ -726,7 +724,6 @@ public class GameServiceImpl implements GameService {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(roundInfoResponses);
-
     }
 
     @Override
@@ -964,7 +961,6 @@ public class GameServiceImpl implements GameService {
             result.setPlace(0);
             resultRepo.save(result);
         }
-
 
         return getGameQuestions(id, page, perPage, sort, order);
     }

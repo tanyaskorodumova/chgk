@@ -10,13 +10,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-
 @RestController
 @RequestMapping("/user_info")
 @RequiredArgsConstructor
 public class UserInfoController {
     private final UserInfoService userInfoService;
-
 
     @GetMapping("/all")
     @Operation(summary = "Получение информации обо всех пользователях")

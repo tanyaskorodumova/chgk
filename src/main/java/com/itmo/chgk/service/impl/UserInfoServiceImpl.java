@@ -30,14 +30,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
+@Service
 public class UserInfoServiceImpl implements UserInfoService {
     private final ObjectMapper mapper;
     private final UserInfoRepo userInfoRepo;
-    private final UserRepo userRepo;
-
 
     @Override
     public Page<UserInfoResponse> getAllUsers(Integer page, Integer perPage, String sort, Sort.Direction order) {
@@ -87,7 +85,6 @@ public class UserInfoServiceImpl implements UserInfoService {
                 throw new CustomException("Пользователь не имеет прав на редактирование сведений о другом пользователе", HttpStatus.FORBIDDEN);
             }
         }
-
 
         if (request.getEmail() != null && userInfoRepo.findByEmail(request.getEmail()).isEmpty()) {
             userInfo.setEmail(request.getEmail());
